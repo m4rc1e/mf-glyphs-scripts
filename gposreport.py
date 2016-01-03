@@ -90,8 +90,8 @@ def designer_gpos_strings(base, accent, font):
                 for b_anc in base[weight][glyph]:
                     for a_anc in accent[weight][mark]:
                         if b_anc == a_anc[1:]: #chops _top to top on mark glyphs
-                            if font.glyphs[glyph].unicode:
-                                if font.glyphs[mark].unicode:
+                            if hasattr(font.glyphs[glyph], "unicode"):
+                                if hasattr(font.glyphs[mark], "unicode"):
                                     text.append('%s%s ' %(font.glyphs[glyph].string,
                                                         font.glyphs[mark].string))
     return ''.join(text).encode('utf-8')
