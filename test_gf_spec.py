@@ -1,12 +1,15 @@
 '''
-Automate Google Font project Spec.
+Check project fulfills Google Font project Spec.
 
 '''
 import os
 import re
 
+__author__ = 'Marc Foley'
+__version__ = '0.001'
+
 try:
-    __glyphsfile__ = Glyphs.fonts[0].filepath
+    __glyphsfile__ = Glyphs.font.filepath
     project_dir = os.path.abspath(os.path.join(os.path.dirname(__glyphsfile__), '..'))
 except NameError:
     project_dir = os.getcwd()
@@ -16,6 +19,7 @@ PROJECT_FILES = {
     'licence': 'OFL.txt',
     'contributors': 'CONTRIBUTORS.txt',
     'trademark': 'TRADEMARKS.md',
+    'readme': 'README.md',
     }
 
 COMPULSORY_FOLDERS = [
@@ -25,18 +29,19 @@ COMPULSORY_FOLDERS = [
 
 SETTINGS = {
     'upm': 1000,
-    'fstype': 4
+    'fstype': 0,
 }
 
 LICENCE_META = 'This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: http://scripts.sil.org/OFL'
 LICENCE_URL_META = 'http://scripts.sil.org/OFL'
 
+
 def file_exists(proj_file, project_path):
     if proj_file in os.listdir(project_path):
-        print('%s exists' % proj_file)
+        print('PASS: %s exists' % proj_file)
         return True
     else:
-        print('%s is missing' % proj_file)
+        print('ERROR: %s is missing' % proj_file)
         return False
 
 
@@ -50,49 +55,37 @@ def folders_exist(directory):
 
     for f in COMPULSORY_FOLDERS:
         if f not in folders:
-            print('missing %s' % f)
+            print('ERROR: %s folder missing' % f)
+        else:
+            print('PASS: %s folder exists' % f)
 
 
 def check_ofl_matches_copyright_string(ofl, c_string):
-    if c_string in ofl.readlines()[0]:
-        print('copyright matches')
+    if c_string not in ofl.readlines()[0]:
+        print('ERROR: First line of ofl does not match copyright')
+        return False
     else:
-        print('First line of ofl does not match copyright')
-
-
-def is_source_file():
-    '''Quickly check if .glyphs file in source folder is a source file.
-    This method should be taken as a pinch of salt.'''
-    pass
-
-
-def check_family_vert_metrics():
-    '''Check the family metrics follow Kalapi's schema.'''
-    pass
+        print('PASS: copyright matches')
+        return True
 
 
 def check_vender_id_string(family_vendor):
-    if family_vendor
-
-
-def check_gasp_table():
-    pass
-
-
-def check_family_fstype(family_fstype):
-    '''Fs_type must be set to installable. In Glyphsapp api this is int 4, spec says 0'''
-    if int(family_fstype) != SETTINGS['fstype']:
-        print 'Change fsType to installable'
+    if family_vendor:
+        print 'PASS: font has vendorId'
+        return True
+    else:
+        print 'POSSIBLE ERROR: font is missing vendorId'
         return False
-    return True
 
 
 def check_family_upm(family_upm):
     '''Check upm is 1000'''
     if int(family_upm) != SETTINGS['upm']:
-        print 'Family upm is not equal to %s' % SETTINGS['upm']
+        print 'POSSIBLE ERROR: Family upm is not equal to %s' % SETTINGS['upm']
         return False
-    return True
+    else:
+        print('PASS: Family upm is equal to %s' % SETTINGS['upm'])
+        return True
 
 
 def check_family_name(fontname):
@@ -102,38 +95,40 @@ def check_family_name(fontname):
         fontname.decode('ascii')
         illegal_char_check = re.search(r'[\-\\/0-9]+', fontname)
         if illegal_char_check:
-            print('Err: Font family "%s", contains numbers, slashes or dashes.' % fontname)
+            print('ERROR: Font family "%s", contains numbers, slashes or dashes.' % fontname)
             return False
     except UnicodeDecodeError:
-        print('Font family name %s, has non ascii characters' % fontname)
+        print('ERROR: Font family name %s, has non ascii characters' % fontname)
         return False
+    print('PASS: Family name is correct')
     return True
 
 
 def check_license_string(family_license_string):
-    if family_license_string is not LICENCE_META:
-        print 'Family licence string is incorrect'
-        return False
-    return True
+    if family_license_string == LICENCE_META:
+        print('PASS: Family license string is correct')
+        return True
+    else:
+        print('ERROR: Family license string is incorrect')
+        return True
 
 
 def check_license_url_string(family_license_url):
-    if family_license_url is not LICENCE_URL_META:
-        print 'Family licence url string is incorrect'
+    if family_license_url == LICENCE_URL_META:
+        print('PASS: Family license url is correct')
         return False
-    return True
-
-
-
-
-
+    else:
+        print('ERROR: Family license url string is incorrect')
+        return True
 
 
 def main():
     # Check project structure
+    font = Glyphs.font
+    file_exists(PROJECT_FILES['readme'], project_dir)
     file_exists(PROJECT_FILES['licence'], project_dir)
     file_exists(PROJECT_FILES['contributors'], project_dir)
-    folders_exist(project_dir, COMPULSORY_FOLDERS)
+    folders_exist(project_dir)
 
     if file_exists(PROJECT_FILES['licence'], project_dir):
         with open(os.path.join(project_dir, PROJECT_FILES['licence']), 'r') as ofl_file:
@@ -141,11 +136,25 @@ def main():
     else:
         print('cannot check first line of OFL matches copyright string')
 
-    # Trademark check
-    # check vendor
-    # GASP table
+    if font.customParameters['trademark']:
+        if file_exists(PROJECT_FILES['trademark'], project_dir):
+            print 'PASS: Font has trademark and file is present'
+        else:
+            print 'POSSIBLE ERROR: Font has trademark but not trademark file present'
 
-    check_family_name(Glyphs.fonts[0].familyName)
+    if file_exists(PROJECT_FILES['trademark'], project_dir):
+        if font.customParameters['trademark']:
+            print 'PASS: Font has trademark and file is present'
+        else:
+            print 'POSSIBLE ERROR: Trademark file exists but font does not have trademark'
+
+    check_vender_id_string(font.customParameters['vendorID'])
+
+    check_license_string(font.customParameters['license'])
+    check_license_url_string(font.customParameters['licenseURL'])
+
+    check_family_name(font.familyName)
+    check_family_upm(font.upm)
 
 
 if __name__ == '__main__':
