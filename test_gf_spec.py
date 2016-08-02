@@ -122,6 +122,13 @@ def check_license_url_string(family_license_url):
         return True
 
 
+def check_family_fstype(font_fstype):
+    # if font_fstype == SETTINGS['fstype']:
+    #     print('PASS: Family fsType matches %s' % SETTINGS['fstype'])
+    # else:
+    #     print('ERROR: Family fsType does not match %s' % SETTINGS['fstype'])
+    print('ERROR in GlyphsApp: Make sure fsType is installable (0 Ms Spec)')
+
 def main():
     # Check project structure
     font = Glyphs.font
@@ -140,13 +147,13 @@ def main():
         if file_exists(PROJECT_FILES['trademark'], project_dir):
             print 'PASS: Font has trademark and file is present'
         else:
-            print 'POSSIBLE ERROR: Font has trademark but not trademark file present'
+            print 'POSSIBLE ERROR: Font has trademark but no %s' % COMPULSOR_FOLDERS['trademark']
 
     if file_exists(PROJECT_FILES['trademark'], project_dir):
         if font.customParameters['trademark']:
             print 'PASS: Font has trademark and file is present'
         else:
-            print 'POSSIBLE ERROR: Trademark file exists but font does not have trademark'
+            print 'POSSIBLE ERROR: %s file exists but font does not have trademark' % COMPULSOR_FOLDERS['trademark']
 
     check_vender_id_string(font.customParameters['vendorID'])
 
@@ -155,6 +162,7 @@ def main():
 
     check_family_name(font.familyName)
     check_family_upm(font.upm)
+    check_family_fstype(font.customParameters['fsType'])
 
 
 if __name__ == '__main__':
