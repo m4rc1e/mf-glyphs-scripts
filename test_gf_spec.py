@@ -1,3 +1,4 @@
+#MenuTitle: Test repo matches gf-checklist structure
 '''
 Check project fulfills Google Font project Spec.
 
@@ -147,13 +148,13 @@ def main():
         if file_exists(PROJECT_FILES['trademark'], project_dir):
             print 'PASS: Font has trademark and file is present'
         else:
-            print 'POSSIBLE ERROR: Font has trademark but no %s' % COMPULSOR_FOLDERS['trademark']
+            print 'POSSIBLE ERROR: Font has trademark but no %s' % PROJECT_FILES['trademark']
 
     if file_exists(PROJECT_FILES['trademark'], project_dir):
         if font.customParameters['trademark']:
             print 'PASS: Font has trademark and file is present'
         else:
-            print 'POSSIBLE ERROR: %s file exists but font does not have trademark' % COMPULSOR_FOLDERS['trademark']
+            print 'POSSIBLE ERROR: %s file exists but font does not have trademark' % PROJECT_FILES['trademark']
 
     check_vender_id_string(font.customParameters['vendorID'])
 

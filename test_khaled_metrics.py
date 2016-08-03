@@ -1,3 +1,4 @@
+#MenuTitle: Test vertical metrics match Khaled's approach
 '''
 Check family metrics following Khaleds schema. This shoud be used
 for old fonts.
@@ -116,7 +117,7 @@ def glyphsapp_family_vert_metrics_match(font):
 
 def compare(arg1_name, arg1_val, op, arg2_name, arg2_val):
     '''Compare two arguements.'''
-    if OP[op](arg1_val, arg2_val):
+    if OPERATORS[op](arg1_val, arg2_val):
         print('PASS: %s %s is %s to %s %s' %
               (arg1_name, arg1_val, op, arg2_name, arg2_val))
     else:
@@ -130,7 +131,7 @@ def main_glyphsapp():
     family_ascender, family_descender = get_glyphsapp_ascender_descender(font)
 
     vmetric_fields = glyphsapp_has_vert_keys(font)
-    
+
     print('\n***Instances share same vertical metrics***')
     consistent_vert_instances = glyphsapp_family_vert_metrics_match(font)
 
