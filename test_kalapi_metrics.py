@@ -1,23 +1,22 @@
-#MenuTitle: Test vertical metrics match Khaled's approach
+#MenuTitle: Test vertical metrics match Kalapi's approach
 # -*- coding: utf-8 -*-
 '''
-Check family metrics following Khaleds schema. This shoud be used
+Check family metrics following Kalapis schema. This shoud be used
 for old fonts.
 
 Proposed in https://groups.google.com/forum/#!topic/googlefonts-discuss/W4PHxnLk3JY,
 Date: 2016/07/20
 
-1) Set OS/2 Typo and hhea metrics to the values that gives the desired
-line spacing for *non Vietnamese text*.
-2) Set OS/2 fSelection “USE_TYPO_METRICS” bit.
-3) Set OS/2 Win metrics to big enough value to avoid any clipping.
-linegaps = 0
-os/2 win metrics should be at least the font bbox
+OS/2 sTypoAscender: highest extent of capital 'H' or lowercase ascender 'h', whichever is taller
+OS/2 sTypoDescender: Font UPM - OS/2 sTypoAscender
+OS/2 sTypoLineGap: 250 (to compensate for the 125% legacy)
 
-> I chatted with Kalapi about this and perhaps this is implicit in your
-> analysis: the typo and hhea metrics are 125 percent of the UPM, and linegaps are 0?
+OS/2 usWinAscent: == yMax (head table)
+OS/2 usWinDescent: == yMin (head table)
 
-If 125 percent UPM give the desired line spacing then yes, and yes 0 line gap.
+hhea ascent: == OS/2 sTypoAscender
+hhea descent: == OS/2 sTypoDescender
+hhea linegap: == OS/2 sTypoLineGap
 '''
 
 import os
@@ -42,11 +41,12 @@ OPERATORS = {
     '<=': operator.le
 }
 
-LINE_GAP = 0
+LINE_GAP = 250
 
 
 def shortest_tallest_glyphs(font, *args):
-    '''find the tallest and shortest glyphs in all masters.'''
+    '''find the tallest and shortest glyphs in all masters from a list.
+    If no list is given, search all glyphs.'''
     lowest = 0.0
     highest = 0.0
     highest_name = ''
@@ -128,9 +128,10 @@ def compare(arg1_name, arg1_val, op, arg2_name, arg2_val):
 
 
 def main_glyphsapp():
-    print('***KHALED METRICS SCHEME***\n')
+    print('***KALAPI METRICS SCHEME***\n')
     font = Glyphs.font
     ymin, ymax = shortest_tallest_glyphs(font)
+    shortest_glyph, tallest_glyph = shortest_tallest_glyphs(font, 'h', 'H')
     family_ascender, family_descender = ascender_descender(font)
 
     vmetric_fields = vert_keys(font)
@@ -147,22 +148,23 @@ def main_glyphsapp():
         compare('Win Ascent', vmfield['winAscent'], '>=', 'yMax', ymax)
         compare('Win Descent', vmfield['winDescent'], '>=', 'yMin', abs(ymin)) # abs so its positive integer
 
+        compare('Typo Ascender', vmfield['typoAscender'], '==', 'Tallest h or H', tallest_glyph)
+        compare('Typo Descender', vmfield['typoDescender'], '==', 'UPM - Typo Asc', font.upm - vmfield['typoAscender'])
+
         compare('Typo Ascender', vmfield['typoAscender'], '==', 'hhea Ascender', vmfield['hheaAscender'])
         compare('Typo Descender', vmfield['typoDescender'], '==', 'hhea Descender', vmfield['hheaDescender'])
         compare('Typo Ascender', vmfield['typoAscender'], '>=', 'Family Ascender', family_ascender)
         compare('Typo Descender', vmfield['typoDescender'], '<=', 'Family Descender', family_descender)
 
-        compare('Typo Line Gap', vmfield['typoLineGap'], '==', 'No Line Gap', LINE_GAP)
-        compare('hhea Line Gap', vmfield['hheaLineGap'], '==', 'No Line Gap', LINE_GAP)
+        compare('Typo Line Gap', vmfield['typoLineGap'], '==', 'Line Gap', LINE_GAP)
+        compare('hhea Line Gap', vmfield['hheaLineGap'], '==', 'Line Gap', LINE_GAP)
     else:
         print('\nERROR: Add all Vertical metrics fields for each instance first \
               and check each instance has same metrics')
 
 
 if __name__ == '__main__':
-    try:
-        __glyphsfile__ = Glyphs.font.filepath
-        project_dir = os.path.abspath(os.path.join(os.path.dirname(__glyphsfile__), '..'))
-        main_glyphsapp()
-    except NameError:
-        print 'Glyphsapp only for now'
+    __glyphsfile__ = Glyphs.font.filepath
+    project_dir = os.path.abspath(os.path.join(os.path.dirname(__glyphsfile__), '..'))
+    main_glyphsapp()
+
