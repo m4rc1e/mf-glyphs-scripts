@@ -1,4 +1,5 @@
 #MenuTitle: Test vertical metrics match Khaled's approach
+# -*- coding: utf-8 -*-
 '''
 Check family metrics following Khaleds schema. This shoud be used
 for old fonts.
