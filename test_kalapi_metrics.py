@@ -149,7 +149,7 @@ def main_glyphsapp():
         compare('Win Descent', vmfield['winDescent'], '>=', 'yMin', abs(ymin)) # abs so its positive integer
 
         compare('Typo Ascender', vmfield['typoAscender'], '==', 'Tallest h or H', tallest_glyph)
-        compare('Typo Descender', vmfield['typoDescender'], '==', 'UPM - Typo Asc', font.upm - vmfield['typoAscender'])
+        compare('Typo Descender', vmfield['typoDescender'], '==', 'UPM - Typo Asc', -(font.upm - vmfield['typoAscender']))
 
         compare('Typo Ascender', vmfield['typoAscender'], '==', 'hhea Ascender', vmfield['hheaAscender'])
         compare('Typo Descender', vmfield['typoDescender'], '==', 'hhea Descender', vmfield['hheaDescender'])
