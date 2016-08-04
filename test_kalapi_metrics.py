@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 '''
 Check family metrics following Kalapis schema. This shoud be used
-for old fonts.
+for new fonts.
 
 Proposed in https://groups.google.com/forum/#!topic/googlefonts-discuss/W4PHxnLk3JY,
 Date: 2016/07/20
@@ -153,8 +153,6 @@ def main_glyphsapp():
 
         compare('Typo Ascender', vmfield['typoAscender'], '==', 'hhea Ascender', vmfield['hheaAscender'])
         compare('Typo Descender', vmfield['typoDescender'], '==', 'hhea Descender', vmfield['hheaDescender'])
-        compare('Typo Ascender', vmfield['typoAscender'], '>=', 'Family Ascender', family_ascender)
-        compare('Typo Descender', vmfield['typoDescender'], '<=', 'Family Descender', family_descender)
 
         compare('Typo Line Gap', vmfield['typoLineGap'], '==', 'Line Gap', LINE_GAP)
         compare('hhea Line Gap', vmfield['hheaLineGap'], '==', 'Line Gap', LINE_GAP)
@@ -167,4 +165,3 @@ if __name__ == '__main__':
     __glyphsfile__ = Glyphs.font.filepath
     project_dir = os.path.abspath(os.path.join(os.path.dirname(__glyphsfile__), '..'))
     main_glyphsapp()
-
