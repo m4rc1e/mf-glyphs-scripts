@@ -110,20 +110,30 @@ class InterpolateInstances:
 
 def main():
     f = InterpolateInstances()
+    font = Glyphs.font
     weight_file_path = GetOpenFile(message='Select yaml file')
     weight_file = open(weight_file_path)
     weights = yaml.safe_load(weight_file)
 
-    for weight in weights['masters']:
-        master = weights['masters'][weight]
-        f.add_master(weight, master['value'], master['stem'])
-
-    for name in weights['instances']:
-        instance = weights['instances'][name]
-        f.add_instance(name, instance['stem'])
-
-    for i in sorted(f.instances.keys()):
-        print f.instances[i].name, int(f.instances[i].weight)
+    try:
+        for weight in weights['masters']:
+            master = weights['masters'][weight]
+            f.add_master(weight, master['value'], master['stem'])
+    
+        for name in weights['instances']:
+            instance = weights['instances'][name]
+            f.add_instance(name, instance['stem'])
+    
+        for i in sorted(f.instances.keys()):
+            instance = GSInstance()
+            instance.name = f.instances[i].name
+            instance.weightValue = int(f.instances[i].weight)
+            instance.weight = ''.join(f.instances[i].name.split(' '))
+            font.instances.append(instance)
+        print('done')
+    except KeyError:
+        print 'yml file is incorrect. See example in docstring'
+        raise
 
 if __name__ == '__main__':
     main()
