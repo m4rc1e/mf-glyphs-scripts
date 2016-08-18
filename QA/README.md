@@ -4,6 +4,8 @@ Test your .glyphs file's metadata against a custom configuration file and for co
 
 This tool is useful Foundries and individuals who have font metadata which should remain consistent across releases.
 
+![alt tag](ui.png)
+
 ## Configuration file
 
 Place your custom metadata into *qa.yml*
@@ -60,8 +62,14 @@ The following fields are accepted:
 - Use Line Breaks
 
 
+## Further QA tests
+Apart from testing metadata, the tool also checks:
+
+### Metadata:
+- Font names don't contain non ASCII characters
+
 ### Glyphs:
-- Duplicate glyphs
+- Report duplicate glyphs
 - Space and nbspace share same width
 - Glyphs which shouldn't be empty have either components or paths
 
@@ -69,9 +77,6 @@ The following fields are accepted:
 - Do metrics match Google Fonts legacy 125% spec.
 - Do metrics match Google Fonts Khaled's schema.
 - Do metrics match Google Fonts Kalapi's schema.
-
-## Why bother?
-Manually checking fonts is a pain. If we can store all the constants which will not change in a yml file. We can simply run our tests and discover if anything has changed or is incorrect. 
 
 ## How did this project start?
 The Google Fonts collection is currently over 800 fonts. We needed a way to quickly assess if certain families are not meeting our new specification.
