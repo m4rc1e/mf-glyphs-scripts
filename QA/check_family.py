@@ -7,7 +7,13 @@ import re
 
 sys.path.append('/Users/marc/Library/Application Support/Glyphs/Scripts/mf-glyphs-scripts')
 import find_duplicate_glyphs
-from test_gf_spec import check_family_name
+from test_gf_spec import (
+	check_family_name,
+	check_license_string,
+	check_family_fstype,
+	check_vendor_id_string,
+	check_family_upm,
+)
 '''
 
 Check family for GlyphsApp
@@ -51,7 +57,6 @@ class GlyphsUI(object):
 	'''Dialog for enabling/disabling checks'''
 	def __init__(self, config_file):
 		self.w = vanilla.FloatingWindow((330, 500), "QA Selected Font", minSize=(300,500), maxSize=(1000,700))
-		
 		self.leading = 14
 		self.head_count = 0
 		
@@ -76,6 +81,8 @@ class GlyphsUI(object):
 
 		# Check 
 		self.w.button = vanilla.Button((14, self.leading+40, 300, 20), "Check", callback=self.buttonCallback)
+		# Resize window to fit all tests
+		self.w.setPosSize((100.0, 100.0, 350.0, self.leading + 75))
 		self.w.open()
 	
 	def _heading(self, title):
@@ -132,7 +139,8 @@ def main(**kwargs):
 	print '***Check Meta Data***'
 	for key in qa_spec:
 		font_attrib = font_field(font, key)
-		check_field(key, qa_spec[key], font_attrib)
+		if font_attrib:
+			check_field(key, qa_spec[key], font_attrib)
 		else:
 			print ('ERROR YML DOC: Attribute %s does not exist for font' % key)
 
