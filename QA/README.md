@@ -1,16 +1,69 @@
-# QA
+# Glyphsapp Font QA
 
-Test your .glyphs files for common errors.
+Test your .glyphs file's metadata against a custom configuration file and for common errors.
 
-## Want to test against your own criterea?
-No problem! font attributes such as license, copyright etc are defined in the 'qa.yml' file.
+This tool is useful Foundries and individuals who have font metadata which should remain consistent across releases.
+
+## Configuration file
+
+Place your custom metadata into *qa.yml*
 
 ![alt tag](config_file.png)
 
-## Apart from meta data, what else does it check?
+The following fields are accepted:
+- copyright
+- designer
+- designerURL
+- manufacturer
+- manufacturerURL
+- versionMajor
+- versionMinor
+- date
+- familyName
+- upm
+- license
+- licenseUrl
+- glyphOrder
+- Family Alignment Zones
+- panose
+- fsType
+- unicodeRanges
+- codePageRanges
+- vendorID
+- blueScale
+- blueShift
+- isFixedPitch
+- trademark
+- description
+- sampleText
+- license
+- licenseURL
+- versionString
+- uniqueID
+- ROS
+- Make morx table
+- EditView Line Height
+- Compatible Name Table
+- Name Table Entry
+- GASP Table
+- localizedFamilyName
+- localizedDesigner
+- TrueType Curve Error
+- Use Typo Metrics
+- Has WWS Names
+- Use Extension Kerning
+- Don't use Production Names
+- makeOTF Argument
+- note
+- Disable Subroutines
+- Disable Last Change
+- Use Line Breaks
+
+
 ### Glyphs:
 - Duplicate glyphs
 - Space and nbspace share same width
+- Glyphs which shouldn't be empty have either components or paths
 
 ### Vertical Metrics:
 - Do metrics match Google Fonts legacy 125% spec.
@@ -24,4 +77,4 @@ Manually checking fonts is a pain. If we can store all the constants which will 
 The Google Fonts collection is currently over 800 fonts. We needed a way to quickly assess if certain families are not meeting our new specification.
 
 ## Want to contribute?
-By all means submit an issue or pull request. 
+By all means submit an issue or pull request.
