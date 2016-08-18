@@ -65,6 +65,7 @@ class GlyphsUI(object):
 		# iterate over config file and add each entry
 		for key in config_file:
 			self._checkbox(key, '%s' % key)
+		self._checkbox('check_family_name', "Check font name has ASCII chars only")
 		
 		# Vertical Metrics
 		self._heading('Vertical Metrics:')
@@ -133,8 +134,10 @@ def main(**kwargs):
 	if 'glyph_no_dups' in kwargs and kwargs['glyph_no_dups'].get() == 1:
 		find_duplicate_glyphs.find([g.name for g in font.glyphs])
 
-	if 'name' in kwargs and kwargs['name'].get() == 1:
+	if 'check_family_name' in kwargs and kwargs['check_family_name'].get() == 1:
 		check_family_name(font.familyName)
+
+	if ''
 
 	print '***Check Meta Data***'
 	for key in qa_spec:
