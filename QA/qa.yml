@@ -1,0 +1,12 @@
+# The following fields are available. Make sure the spelling is exact.
+
+# 'any' can be used for fields which are required but the value does not matter
+
+# Google Spec https://github.com/googlefonts/gf-docs/blob/master/ProjectChecklist.md
+upm: 1000
+license: 'This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: http://scripts.sil.org/OFL'
+licenseURL: 'http://scripts.sil.org/OFL'
+fsType: 0
+Use Typo Metrics: True
+vendorID: 'any'
+designer: 'any'
