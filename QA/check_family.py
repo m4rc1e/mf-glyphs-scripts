@@ -7,6 +7,8 @@ import re
 
 sys.path.append('/Users/marc/Library/Application Support/Glyphs/Scripts/mf-glyphs-scripts')
 import find_duplicate_glyphs
+import has_outlines
+
 from test_gf_spec import (
 	check_family_name,
 	check_license_string,
@@ -79,6 +81,7 @@ class GlyphsUI(object):
 		self._checkbox('glyph_names', "Glyph names")
 		self._checkbox('glyph_no_dups', "No duplicate glyphs")
 		self._checkbox('glyph_nbspace_space', "nbspace and space are same width")
+		self._checkbox('glyphs_missing_conts_or_comps', "Glyphs missing contours or components")
 
 		# Check 
 		self.w.button = vanilla.Button((14, self.leading+40, 300, 20), "Check", callback=self.buttonCallback)
@@ -137,8 +140,6 @@ def main(**kwargs):
 	if 'check_family_name' in kwargs and kwargs['check_family_name'].get() == 1:
 		check_family_name(font.familyName)
 
-	if ''
-
 	print '***Check Meta Data***'
 	for key in qa_spec:
 		font_attrib = font_field(font, key)
@@ -146,6 +147,9 @@ def main(**kwargs):
 			check_field(key, qa_spec[key], font_attrib)
 		else:
 			print ('ERROR YML DOC: Attribute %s does not exist for font' % key)
+
+	if 'glyphs_missing_conts_or_comps' in kwargs and kwargs['glyphs_missing_conts_or_comps'].get() == 1:
+		has_outlines.check(font)
 
 
 if __name__ == '__main__':
