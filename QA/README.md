@@ -4,6 +4,7 @@ Test your .glyphs files for common errors.
 
 ## Want to test against your own criterea?
 No problem! font attributes such as license, copyright etc are defined in the 'qa.yml' file.
+
 ![alt tag](config_file.png)
 
 ## Apart from meta data, what else does it check?
