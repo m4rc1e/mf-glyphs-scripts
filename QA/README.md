@@ -75,9 +75,7 @@ Apart from testing metadata, the tool also checks:
 - Glyphs which shouldn't be empty have either components or paths
 
 ### Vertical Metrics:
-- Do metrics match Google Fonts legacy 125% spec.
-- Do metrics match Google Fonts Khaled's schema.
-- Do metrics match Google Fonts Kalapi's schema.
+- Metrics greater than 125% of font upm
 
 ## How did this project start?
 The Google Fonts collection is currently over 800 fonts. We needed a way to quickly assess if certain families are not meeting our new specification.

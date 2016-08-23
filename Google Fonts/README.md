@@ -22,7 +22,7 @@ This scheme should be adopted for new fonts.
 
 
 ## test_khaled_metrics.py
-Check if fonts pass [Khaled's proposed vertical metrics setup](
+Check if fonts pass [Khaled's proposed vertical metrics setup](https://groups.google.com/d/msg/googlefonts-discuss/W4PHxnLk3JY/2Xrk9KgkAwAJ)
 
     1. Set OS/2 Typo and hhea metrics to the values that gives the desired 
        line spacing for *non Vietnamese text*. 
