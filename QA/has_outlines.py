@@ -1,3 +1,7 @@
+'''
+Check if glyphs are missing outlines or composites.
+Only works on glyphs which have unicodes
+'''
 import unicodedata as uni
 
 IGNORE_GLYPHS_OUTLINE = [
@@ -9,7 +13,7 @@ def check(font):
 	masters = font.masters
 	for i, master in enumerate(masters):
 		for glyph in font.glyphs:
-			glyph.storeCategory{}
+
 			if str(glyph.category) != 'Separator' and glyph.name not in IGNORE_GLYPHS_OUTLINE:
 				if len(glyph.layers[i].paths) == 0:
 					if len(glyph.layers[i].components) == 0:

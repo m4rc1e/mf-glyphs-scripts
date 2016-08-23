@@ -61,11 +61,12 @@ The following fields are accepted:
 - Disable Last Change
 - Use Line Breaks
 
+Spelling must be exact.
 
 ## Further QA tests
 Apart from testing metadata, the tool also checks:
 
-### Metadata:
+### Misc:
 - Font names don't contain non ASCII characters
 
 ### Glyphs:

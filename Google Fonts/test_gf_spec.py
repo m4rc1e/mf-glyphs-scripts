@@ -70,28 +70,31 @@ def check_ofl_matches_copyright_string(ofl, c_string):
         return True
 
 
-def check_vender_id_string(family_vendor):
+def check_vendor_id_string(family_vendor):
+    print('***Check vendorID***')
     if family_vendor:
-        print 'PASS: font has vendorId'
+        print 'PASS: font has vendorId\n'
         return True
     else:
-        print 'POSSIBLE ERROR: font is missing vendorId'
+        print 'POSSIBLE ERROR: font is missing vendorId\n'
         return False
 
 
 def check_family_upm(family_upm):
     '''Check upm is 1000'''
+    print('***Check font upm***')
     if int(family_upm) != SETTINGS['upm']:
-        print 'POSSIBLE ERROR: Family upm is not equal to %s' % SETTINGS['upm']
+        print 'POSSIBLE ERROR: Family upm is not equal to %s\n' % SETTINGS['upm']
         return False
     else:
-        print('PASS: Family upm is equal to %s' % SETTINGS['upm'])
+        print('PASS: Family upm is equal to %s\n' % SETTINGS['upm'])
         return True
 
 
 def check_family_name(fontname):
     '''Check if family name has non ascii characters as well as
     dashes, numbers and diacritics as well.'''
+    print('***Check family name has only ASCII characters***')
     try:
         fontname.decode('ascii')
         illegal_char_check = re.search(r'[\-\\/0-9]+', fontname)
@@ -101,34 +104,36 @@ def check_family_name(fontname):
     except UnicodeDecodeError:
         print('ERROR: Font family name %s, has non ascii characters' % fontname)
         return False
-    print('PASS: Family name is correct')
+    print('PASS: Family name is correct\n')
     return True
 
 
 def check_license_string(family_license_string):
+    print('***Check License string***')
     if family_license_string == LICENCE_META:
-        print('PASS: Family license string is correct')
+        print('PASS: Family license string is correct\n')
         return True
     else:
-        print('ERROR: Family license string is incorrect')
+        print('ERROR: Family license string is incorrect\n')
         return True
 
 
 def check_license_url_string(family_license_url):
+    print('***Check License URL string***')
     if family_license_url == LICENCE_URL_META:
-        print('PASS: Family license url is correct')
+        print('PASS: Family license url is correct\n')
         return False
     else:
-        print('ERROR: Family license url string is incorrect')
+        print('ERROR: Family license url string is incorrect\n')
         return True
 
 
 def check_family_fstype(font_fstype):
-    # if font_fstype == SETTINGS['fstype']:
-    #     print('PASS: Family fsType matches %s' % SETTINGS['fstype'])
-    # else:
-    #     print('ERROR: Family fsType does not match %s' % SETTINGS['fstype'])
-    print('ERROR in GlyphsApp: Make sure fsType is installable (0 Ms Spec)')
+    print('***Check fsType***')
+    if font_fstype == SETTINGS['fstype']:
+        print('PASS: Family fsType matches %s\n' % SETTINGS['fstype'])
+    else:
+        print('ERROR: Family fsType does not match %s\n' % SETTINGS['fstype'])
 
 def main():
     # Check project structure
@@ -156,7 +161,7 @@ def main():
         else:
             print 'POSSIBLE ERROR: %s file exists but font does not have trademark' % PROJECT_FILES['trademark']
 
-    check_vender_id_string(font.customParameters['vendorID'])
+    check_vendor_id_string(font.customParameters['vendorID'])
 
     check_license_string(font.customParameters['license'])
     check_license_url_string(font.customParameters['licenseURL'])

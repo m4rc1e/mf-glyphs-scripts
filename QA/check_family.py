@@ -1,4 +1,14 @@
 #MenuTitle: Check Font
+'''
+
+Check family for GlyphsApp
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Check selected family passes qa.yml spec and common font errors.
+
+Refer to README for further info.
+'''
 import vanilla
 import os
 import sys
@@ -8,6 +18,7 @@ import re
 sys.path.append('/Users/marc/Library/Application Support/Glyphs/Scripts/mf-glyphs-scripts')
 import find_duplicate_glyphs
 import has_outlines
+import fix_uni00a0_width
 
 from test_gf_spec import (
 	check_family_name,
@@ -16,40 +27,6 @@ from test_gf_spec import (
 	check_vendor_id_string,
 	check_family_upm,
 )
-'''
-
-Check family for GlyphsApp
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-Check selected family passes the following:
-
-Meta Data:
-- Check fsType is 0 (installable)
-- Check vendorID is present
-- Font upm is 1000
-- Check license url
-- Check license
-- Check non ASCII characters are not in Font Name
-
-
-Glyphs:
-- No duplicate Glyphs
-- Check names
-- nbspace and space share the same width
-
-
-Vertical Metrics:
-- Check font passes legacy 125pc upm rule
-- Check old fonts pass Khaled's schema
-- Check new fonts pass Kalapi's schema
-- Check each master and instance share the same Metrics
-
-
-Designer Proofing:
-- Generate Metrics report
-- Generate GPOS report
-'''
 
 __version__ = 0.1
 __author__ = 'Marc Foley'
@@ -118,6 +95,7 @@ def check_field(key, yml, font, fix=False):
 
 
 def font_field(font, key):
+    '''Check font has key'''
 	if hasattr(font, key):
 		return getattr(font, key)
 	if key in font.customParameters:
@@ -150,6 +128,9 @@ def main(**kwargs):
 
 	if 'glyphs_missing_conts_or_comps' in kwargs and kwargs['glyphs_missing_conts_or_comps'].get() == 1:
 		has_outlines.check(font)
+
+    if 'glyph_nbspace_space' in kwargs and kwargs['glyph_nbspace_space'].get() == 1:
+        fix_uni00a0_width.check(font, font.masters)
 
 
 if __name__ == '__main__':
