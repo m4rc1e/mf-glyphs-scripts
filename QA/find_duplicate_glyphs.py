@@ -11,7 +11,7 @@ def find(font_glyphs):
     if len(set(glyphs_count.values())) >= 2:
         for glyph in glyphs_count:
             if glyphs_count[glyph] >= 2:
-                print 'ERROR: %s duplicated' % glyph
+                print 'ERROR: %s duplicated\n' % glyph
     else:
         print 'PASS: No duplicate glyphs\n'
 

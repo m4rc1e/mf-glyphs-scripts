@@ -1,4 +1,3 @@
-#MenuTitle: Set all masters uni00A0 width to Space width
 # -*- coding: utf-8 -*-
 '''
 Set nbspace to same width as space

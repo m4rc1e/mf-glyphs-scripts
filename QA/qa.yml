@@ -1,8 +1,56 @@
 # The following fields are available. Make sure the spelling is exact.
 
+# copyright
+# designer
+# designerURL
+# manufacturer
+# manufacturerURL
+# versionMajor
+# versionMinor
+# date
+# familyName
+# upm
+# license
+# licenseUrl
+# glyphOrder
+# Family Alignment Zones
+# panose
+# fsType
+# unicodeRanges
+# codePageRanges
+# vendorID
+# blueScale
+# blueShift
+# isFixedPitch
+# trademark
+# description
+# sampleText
+# license
+# licenseURL
+# versionString
+# uniqueID
+# ROS
+# Make morx table
+# EditView Line Height
+# Compatible Name Table
+# Name Table Entry
+# GASP Table
+# localizedFamilyName
+# localizedDesigner
+# TrueType Curve Error
+# Use Typo Metrics
+# Has WWS Names
+# Use Extension Kerning
+# Don't use Production Names
+# makeOTF Argument
+# note
+# Disable Subroutines
+# Disable Last Change
+# Use Line Breaks
+
 # 'any' can be used for fields which are required but the value does not matter
 
-# Google Spec https://github.com/googlefonts/gf-docs/blob/master/ProjectChecklist.md
+# Google Spec https://github.com/googlefonts/gf#docs/blob/master/ProjectChecklist.md
 upm: 1000
 license: 'This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: http://scripts.sil.org/OFL'
 licenseURL: 'http://scripts.sil.org/OFL'
