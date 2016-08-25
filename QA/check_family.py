@@ -23,6 +23,7 @@ from QA import (
 	has_outlines,
 	uni00a0_width,
 	font_name,
+	master_same_metrics,
 )
 
 
@@ -106,11 +107,6 @@ def main(**kwargs):
 	font = Glyphs.font
 
 	qa_spec = yaml.safe_load(open(script_path + '/QA/qa.yml', 'r'))
-	if 'glyph_no_dups' in kwargs and kwargs['glyph_no_dups'].get() == 1:
-		find_duplicate_glyphs.find([g.name for g in font.glyphs])
-
-	if 'check_family_name' in kwargs and kwargs['check_family_name'].get() == 1:
-		font_name.check_family_name(font.familyName)
 
 	print '***Check Meta Data***'
 	for key in qa_spec:
@@ -120,11 +116,21 @@ def main(**kwargs):
 		else:
 			print ('ERROR YML DOC: Attribute %s does not exist for font\n' % key)
 
+	if 'glyph_no_dups' in kwargs and kwargs['glyph_no_dups'].get() == 1:
+		find_duplicate_glyphs.find([g.name for g in font.glyphs])
+
+	if 'check_family_name' in kwargs and kwargs['check_family_name'].get() == 1:
+		font_name.check_family_name(font.familyName)
+
 	if 'glyphs_missing_conts_or_comps' in kwargs and kwargs['glyphs_missing_conts_or_comps'].get() == 1:
 		has_outlines.check(font)
 
 	if 'glyph_nbspace_space' in kwargs and kwargs['glyph_nbspace_space'].get() == 1:
 		uni00a0_width.check(font, font.masters)
+
+	if 'metrics_fam_vals' in kwargs and kwargs['metrics_fam_vals'].get() == 1:
+		master_same_metrics.check('master', font.masters)
+		master_same_metrics.check('instance', font.instances)
 
 
 if __name__ == '__main__':
