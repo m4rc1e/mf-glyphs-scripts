@@ -1,3 +1,4 @@
+#MenuTitle: Check glyphs match across open fonts
 '''
 Find missing glyphs across fonts
 '''
