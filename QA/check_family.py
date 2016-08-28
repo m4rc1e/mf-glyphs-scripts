@@ -99,6 +99,7 @@ def main(**kwargs):
 	if 'check_absolute_panose' in kwargs and kwargs['check_absolute_panose'].get() == 1:
 		fontinfo.panose(font)
 
+	print "***Check Glyph's Data***"
 	if 'glyphs_missing_conts_or_comps' in kwargs and kwargs['glyphs_missing_conts_or_comps'].get() == 1:
 		glyphs.outlines_missing(font)
 
@@ -108,6 +109,7 @@ def main(**kwargs):
 	if 'glyph_no_dups' in kwargs and kwargs['glyph_no_dups'].get() == 1:
 		glyphs.find_duplicates([g.name for g in font.glyphs])
 
+	print "***Check Vertical Metrics***"
 	if 'metrics_fam_vals' in kwargs and kwargs['metrics_fam_vals'].get() == 1:
 		metrics.synced('master', font.masters)
 		metrics.synced('instance', font.instances)
