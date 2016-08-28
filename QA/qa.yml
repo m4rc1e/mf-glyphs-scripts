@@ -1,4 +1,4 @@
-# The following fields are available. Make sure the spelling is exact.
+# The following fields are available. Make sure the spelling/case is exact.
 
 # copyright
 # designer
@@ -48,7 +48,7 @@
 # Disable Last Change
 # Use Line Breaks
 
-# 'any' can be used for fields which are required but the value does not matter
+# 'any' can be used for any field which needs to exist but the value is ambigious
 
 # Google Spec https://github.com/googlefonts/gf#docs/blob/master/ProjectChecklist.md
 upm: 1000
