@@ -4,7 +4,6 @@
 Check family for GlyphsApp
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 Check selected family passes qa.yml spec and common font errors.
 
 Refer to README for further info.
@@ -104,7 +103,7 @@ def main(**kwargs):
         glyphs.outlines_missing(font)
 
     if 'glyph_nbspace_space' in kwargs and kwargs['glyph_nbspace_space'].get() == 1:
-        glyphs.uni00a0_width(font, font.masters)
+        metrics.uni00a0_width(font, font.masters)
 
     if 'glyph_no_dups' in kwargs and kwargs['glyph_no_dups'].get() == 1:
         glyphs.find_duplicates([g.name for g in font.glyphs])
