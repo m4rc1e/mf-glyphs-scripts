@@ -1,4 +1,5 @@
 '''Check if masters share same vertical metrics'''
+
 VERT_KEYS = [
     'typoDescender',
     'typoLineGap',

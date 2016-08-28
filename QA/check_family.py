@@ -24,6 +24,7 @@ from QA import (
 	uni00a0_width,
 	font_name,
 	master_same_metrics,
+	panose,
 )
 
 
@@ -44,6 +45,7 @@ class GlyphsUI(object):
 		for key in config_file:
 			self._checkbox(key, '%s' % key)
 		self._checkbox('check_family_name', "Check font name has ASCII chars only")
+		self._checkbox('check_absolute_panose', "Check Panose is not assigned for all weights")
 		
 		# Vertical Metrics
 		self._heading('Vertical Metrics:')
@@ -121,6 +123,9 @@ def main(**kwargs):
 
 	if 'check_family_name' in kwargs and kwargs['check_family_name'].get() == 1:
 		font_name.check_family_name(font.familyName)
+
+	if 'check_absolute_panose' in kwargs and kwargs['check_absolute_panose'].get() == 1:
+		panose.check(font)
 
 	if 'glyphs_missing_conts_or_comps' in kwargs and kwargs['glyphs_missing_conts_or_comps'].get() == 1:
 		has_outlines.check(font)

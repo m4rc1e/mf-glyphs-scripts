@@ -23,7 +23,7 @@ def check(font):
 
 		if bad_glyphs:
 			for glyph in bad_glyphs:
-				print "ERROR: %s master's %s should have outlines or components\n" % (master.name, glyph.name)
+				print "ERROR: %s master's %s should have outlines or components\n" % (master.name, glyph)
 						
 		else:
 			print "PASS: %s master's glyphs have components or outlines\n" % master.name
