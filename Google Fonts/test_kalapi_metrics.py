@@ -146,7 +146,7 @@ def main_glyphsapp():
         print("\n***Check vertical metrics match***")
 
         compare('Win Ascent', vmfield['winAscent'], '>=', 'yMax', ymax)
-        compare('Win Descent', vmfield['winDescent'], '>=', 'yMin', abs(ymin)) # abs so its positive integer
+        compare('Win Descent', vmfield['winDescent'], '>=', 'yMin', abs(ymin)) # abs so its a positive integer
 
         compare('Typo Ascender', vmfield['typoAscender'], '==', 'Tallest h or H', tallest_glyph)
         compare('Typo Descender', vmfield['typoDescender'], '==', 'UPM - Typo Asc', -(font.upm - vmfield['typoAscender']))
