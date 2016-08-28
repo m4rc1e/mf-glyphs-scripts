@@ -2,7 +2,7 @@ from collections import Counter
 import unicodedata as uni
 
 IGNORE_GLYPHS_OUTLINE = [
-    'uni0000'   
+    'uni0000',
 ]
 
 
