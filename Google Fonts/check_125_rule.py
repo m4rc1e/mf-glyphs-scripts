@@ -1,7 +1,7 @@
 #MenuTitle: Check 125% metrics rule
 # -*- coding: utf-8 -*-
 '''
-Check 125 percent metrics rule.
+Check 125% metrics rule.
 '''
 
 
@@ -22,6 +22,10 @@ def main():
         rule = font.upm * 1.25
         if typo_v_size >= rule:
             print 'PASS: typo asc + desc size is %s, whilst 125 of metrics is %s' % (
+                   typo_v_size, rule
+            )
+        else:
+            print 'ERROR: typo asc + desc size is %s, whilst 125 of metrics is %s' % (
                    typo_v_size, rule
             )
 
