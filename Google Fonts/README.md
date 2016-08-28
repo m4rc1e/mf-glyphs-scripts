@@ -39,3 +39,7 @@ Check if fonts pass [Khaled's proposed vertical metrics setup](https://groups.go
 
 ## test_125_rule.py
 Check vertical metrics are greater than 125% of fonts upm. This was the legacy vertical metrics setup.
+
+
+#Tests to add
+- Check 'Project Authors' is included in first line of OFL and font's copyright notice
