@@ -25,7 +25,7 @@ def font_field(font, key):
 def check_family_name(fontname):
     '''Check if family name has non ascii characters as well as dashes, number
     and diacritics as well.'''
-    print('***Check family name has only ASCII characters***')
+    print('**Check family name has only ASCII characters**')
     try:
         fontname.decode('ascii')
         illegal_char_check = re.search(r'[\-\\/0-9]+', fontname)
@@ -42,7 +42,7 @@ def check_family_name(fontname):
 def panose(font):
     '''Panose number should not be set to an absolute if the font has
     instances/weights'''
-    print '***Check Panose Assignment***'
+    print '**Check Panose Assignment**'
     if font.masters > 1 and 'panose' in font.customParameters:
         print 'ERROR: Panose should be unique for each weight instance\n'
     else:
