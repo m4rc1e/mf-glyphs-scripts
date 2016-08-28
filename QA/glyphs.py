@@ -5,6 +5,7 @@ IGNORE_GLYPHS_OUTLINE = [
     'uni0000'   
 ]
 
+
 def find_duplicates(font_glyphs):
     '''Check if there are duplicate glyphs'''
     print '***Find Duplicate glyphs in selected font***'
@@ -42,17 +43,17 @@ def outlines_missing(font):
 def uni00a0_width(font, masters, fix=False):
     '''Set nbspace to same width as space'''
     print '***Checking space and nbspace have same width***'
-    for id in range(len(masters)):
+    for id, master in enumerate(masters):
         if font.glyphs['nbspace'].layers[id].width != font.glyphs['space'].layers[id].width:
-            print 'ERROR: nbspace and space are not same width\n'
+            print 'ERROR: %s nbspace and space are not same width\n' % (master.name)
         else:
-            print 'PASS: nbspace and space are same width\n'
+            print 'PASS: %s nbspace and space are same width\n' % (master.name)
 
         if fix:
             font.glyphs['nbspace'].layers[id].width = font.glyphs['space'].layers[id].width
             print 'Now equal widths! space=%s, 00A0=%s' %(
-            font.glyphs['space'].layers[id].width,
-            font.glyphs['nbspace'].layers[id].width
+                font.glyphs['space'].layers[id].width,
+                font.glyphs['nbspace'].layers[id].width
             )
 
 
