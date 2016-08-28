@@ -1,5 +1,3 @@
-'''Check if masters share same vertical metrics'''
-
 VERT_KEYS = [
     'typoDescender',
     'typoLineGap',
@@ -11,7 +9,8 @@ VERT_KEYS = [
     'winAscent',
 ]
 
-def check(layer, masters):
+def synced(layer, masters):
+    '''Check if masters share same vertical metrics'''
     print '***Checking %s share same vert metrics***' % layer
     bad_masters = []
     for master1 in masters:
