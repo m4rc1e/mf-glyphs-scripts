@@ -27,7 +27,7 @@ from QA import (
 
 
 __version__ = 0.1
-__author__ = 'Marc Foley'
+__author__ = ['Marc Foley', 'Lasse Fister']
 
 
 class GlyphsUI(object):
