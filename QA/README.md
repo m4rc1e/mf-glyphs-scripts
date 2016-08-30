@@ -8,7 +8,7 @@ This tool is useful Foundries and individuals who have font metadata which shoul
 
 ## Configuration file
 
-Place your custom metadata into *qa.yml*
+Place your custom metadata into *qa.json*
 
 ![alt tag](config_file.png)
 

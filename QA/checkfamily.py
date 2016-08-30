@@ -4,7 +4,7 @@
 Check family for GlyphsApp
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Check selected family passes qa.yml spec and common font errors.
+Check selected family passes qa.json spec and common font errors.
 
 Refer to README for further info.
 '''
@@ -12,7 +12,7 @@ import vanilla
 import os
 import glob
 import sys
-import yaml
+import json
 import re
 
 script_path = glob.glob(r'/Users/*/Library/Application Support/Glyphs/Scripts/mf-glyphs-scripts')[0]
@@ -75,14 +75,14 @@ class GlyphsUI(object):
 
 
 def main_glyphs():
-    qa_spec = yaml.safe_load(open(script_path + '/QA/qa.yml', 'r'))
+    qa_spec = json.loads(open(script_path + '/QA/qa.json', 'r'))
     ui = GlyphsUI(qa_spec)
 
 
 def main(**kwargs):
     font = Glyphs.font
 
-    qa_spec = yaml.safe_load(open(script_path + '/QA/qa.yml', 'r'))
+    qa_spec = json.loads(open(script_path + '/QA/qa.json', 'r'))
 
     print '***Check Meta Data***'
     for key in qa_spec:
