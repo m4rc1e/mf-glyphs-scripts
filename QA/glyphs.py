@@ -39,3 +39,37 @@ def outlines_missing(font):
                 print "ERROR: %s master's %s should have outlines or components\n" % (master.name, glyph)            
         else:
             print "PASS: %s master's glyphs have components or outlines\n" % master.name
+
+def find_duplicate_components(glyphs):
+    '''Find duplicate components in the same glyph and share
+    the same affine transformation.
+    This happens when Glyphs generates a glyph like quotedblright.'''
+    print '**Find duplicate components that share the same position/transformation.**'
+    no_error = True;
+    for glyph in glyphs:
+        for layer in glyph.layers:
+            all_transformations = {}
+            all_components = {}
+            for component in layer.components:
+                name = component.componentName
+                if name not in all_components:
+                    all_components[name] = []
+                    all_transformations[name] = set()
+                all_components[name].append(component)
+                all_transformations[name].add(tuple(component.transform))
+            for name, components in all_components.iteritems():
+                transformations = all_transformations[name];
+                if len(transformations) != len(components):
+                    no_error = False
+                    print ('ERROR: glyph {glyph} layer {layer}: {count_c} '
+                        + 'components of {component} share {count_t} '
+                        + 'transformations.\n    '
+                        + 'All components of the same type must be positioned '
+                        + 'differently.\n').format(
+                                                glyph=glyph.name,
+                                                layer=layer.name,
+                                                count_c=len(components),
+                                                component=name,
+                                                count_t=len(transformations))
+    if no_error:
+        print 'PASS: no duplicate components share the same spot.\n'

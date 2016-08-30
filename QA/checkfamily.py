@@ -110,6 +110,9 @@ def main(**kwargs):
     if 'glyph_no_dups' in kwargs and kwargs['glyph_no_dups'].get() == 1:
         glyphs.find_duplicates([g.name for g in font.glyphs])
 
+    if 'glyphs_duplicate_components' in kwargs and kwargs['glyphs_duplicate_components'].get() == 1:
+        glyphs.find_duplicate_components(font.glyphs)
+
     print "***Check Vertical Metrics***"
     if 'metrics_fam_vals' in kwargs and kwargs['metrics_fam_vals'].get() == 1:
         metrics.synced('master', font.masters)
