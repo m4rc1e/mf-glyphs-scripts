@@ -53,6 +53,7 @@ class GlyphsUI(object):
         self._checkbox('glyph_no_dups', "No duplicate glyphs")
         self._checkbox('glyph_nbspace_space', "nbspace and space are same width")
         self._checkbox('glyphs_missing_conts_or_comps', "Glyphs missing contours or components")
+        self._checkbox('glyphs_duplicate_components', "Glyphs with duplicate components")
 
         # Check button
         self.w.button = vanilla.Button((14, self.leading+40, 300, 20), "Check", callback=self.buttonCallback)
