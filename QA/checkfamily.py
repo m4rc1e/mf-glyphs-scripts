@@ -75,14 +75,14 @@ class GlyphsUI(object):
 
 
 def main_glyphs():
-    qa_spec = json.loads(open(script_path + '/QA/qa.json', 'r'))
+    qa_spec = json.load(open(script_path + '/QA/qa.json', 'r'))
     ui = GlyphsUI(qa_spec)
 
 
 def main(**kwargs):
     font = Glyphs.font
 
-    qa_spec = json.loads(open(script_path + '/QA/qa.json', 'r'))
+    qa_spec = json.load(open(script_path + '/QA/qa.json', 'r'))
 
     print '***Check Meta Data***'
     for key in qa_spec:
