@@ -10,13 +10,15 @@ Refer to README for further info.
 '''
 import vanilla
 import os
+import sys
 import glob
 import sys
 import json
 import re
 
-script_path = glob.glob(r'/Users/*/Library/Application Support/Glyphs/Scripts/mf-glyphs-scripts')[0]
-sys.path.append(script_path)
+script_path = os.path.abspath('..')
+if script_path not in sys.path:
+    sys.path.append(script_path)
 from QA import (
     glyphs,
     fontinfo,
