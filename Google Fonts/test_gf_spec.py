@@ -21,7 +21,7 @@ PROJECT_FILES = {
     'contributors': 'CONTRIBUTORS.txt',
     'trademark': 'TRADEMARKS.md',
     'readme': 'README.md',
-    '.gitignore'
+    'gitignore': '.gitignore'
     }
 
 COMPULSORY_FOLDERS = [
