@@ -21,7 +21,7 @@ PROJECT_FILES = {
     'contributors': 'CONTRIBUTORS.txt',
     'trademark': 'TRADEMARKS.md',
     'readme': 'README.md',
-    '.gitignore'
+    'gitignore': '.gitignore'
     }
 
 COMPULSORY_FOLDERS = [
@@ -131,7 +131,7 @@ def check_license_url_string(family_license_url):
 
 def check_family_fstype(font_fstype):
     print('***Check fsType***')
-    if font_fstype == SETTINGS['fstype']:
+    if font_fstype in (SETTINGS['fstype'], str(SETTINGS['fstype'])):
         print('PASS: Family fsType matches %s\n' % SETTINGS['fstype'])
     else:
         print('ERROR: Family fsType does not match %s\n' % SETTINGS['fstype'])
