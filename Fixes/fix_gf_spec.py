@@ -1,3 +1,4 @@
+#MenuTitle: Fix fonts for GF spec
 '''
 Fix/add requirements from ProjectChecklist.md
 '''
@@ -13,7 +14,7 @@ def main():
     font.customParameters['licenseURL'] = 'http://scripts.sil.org/OFL'
     font.customParameters['fsType'] = 0
     font.customParameters['Use Typo Metrics'] = True
-    
+
     # Delete panose constant for family. Panose should be unique for each instance
     if 'panose' in font.customParameters:
         del font.customParameters['panose']
@@ -61,6 +62,16 @@ def main():
             instance.customParameters['postscriptFullName'] = '%s %s' % (font.familyName, instance.name)
         if not instance.customParameters['compatibleFullName']:
             instance.customParameters['compatibleFullName'] = '%s %s' % (font.familyName, instance.name)
+
+        # familyName Regular Italic -> familyName Italic
+        if instance.customParameters['postscriptFullName'] == '%s Regular Italic' % (font.familyName:
+            instance.customParameters['postscriptFullName'] = '%s Italic' % (font.familyName)
+            instance.customParameters['compatibleFullName'] = '%s Italic' % (font.familyName)
+
+        if 'Italic' in instance.customParameters['postscriptFullName']:
+            instance.isItalic = True
+            instance.linkStyle = instance.weight
+
 
 if __name__ == '__main__':
     main()
