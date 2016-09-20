@@ -88,10 +88,10 @@ def vert_keys(font):
     for each instance.'''
     no_errors = True
 
-    for instance in font.instances:
-        print('***Check %s instance has mandatory metric attributes***' % instance.name)
+    for master in font.masters:
+        print('***Check %s instance has mandatory metric attributes***' % master.name)
         for key in GLYPHS_VERT_KEYS:
-            if instance.customParameters[key] is not None:
+            if master.customParameters[key] is not None:
                 print 'PASS: %s exists' % (key)
             else:
                 print('ERROR: %s needed' % (key))
@@ -101,16 +101,16 @@ def vert_keys(font):
 
 def vert_metrics_match(font):
     '''Check all instances share the same vertical metrics.'''
-    instance_metrics = {}
-    for i, instance in enumerate(font.instances):
-        instance_metrics[i] = {}
+    master_metrics = {}
+    for i, master in enumerate(font.masters):
+        master_metrics[i] = {}
         for key in GLYPHS_VERT_KEYS:
-            instance_metrics[i][key] = float(instance.customParameters[key])
+            master_metrics[i][key] = float(master.customParameters[key])
 
     # Compare each instance against the first
-    for key in instance_metrics:
-        for field in instance_metrics[key]:
-            if instance_metrics[key][field] != instance_metrics[0][field]:
+    for key in master_metrics:
+        for field in master_metrics[key]:
+            if master_metrics[key][field] != master_metrics[0][field]:
                 print('ERROR: instances do not share same metrics')
                 return False
     print('PASS: All instances share same metics')
@@ -139,8 +139,8 @@ def main_glyphsapp():
     consistent_vert_instances = vert_metrics_match(font)
 
     if vmetric_fields and consistent_vert_instances:
-        instance = font.instances[0]
-        vmfield = instance.customParameters
+        master = font.masters[0]
+        vmfield = master.customParameters
 
         print("\n***Check vertical metrics match***")
 
