@@ -73,25 +73,3 @@ def find_duplicate_components(glyphs):
                                                 count_t=len(transformations))
     if no_error:
         print 'PASS: no duplicate components share the same spot.\n'
-
-
-def zero_width(glyphs):
-    '''Find glyphs which should be zero width'''
-    print '**Check glyphs that should be zero width are**'
-    bad_glyphs = []
-
-    for glyph in glyphs:
-        for i, master in enumerate(glyph.layers):
-            if glyph.unicode:
-                glyph_cat = uni.category(glyph.string)
-                if 'Mn' == glyph_cat and glyph.layers[i].width != 0:
-                    bad_glyphs.append((master.name, glyph.name))
-            else:
-                if 'comb' in glyph.name and glyph.layers[i].width != 0:
-                    bad_glyphs.append((master.name, glyph.name))
-
-    if bad_glyphs:
-        for weight, glyph in bad_glyphs:                                    
-            print 'ERROR: %s %s != 0' % (weight, glyph)
-    else:
-        print 'PASS: All glyphs which should be 0 width are'
