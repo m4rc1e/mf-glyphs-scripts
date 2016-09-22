@@ -121,7 +121,6 @@ def main(**kwargs):
     print "***Check Vertical Metrics***"
     if 'metrics_fam_vals' in kwargs and kwargs['metrics_fam_vals'].get() == 1:
         metrics.synced('master', font.masters)
-        metrics.synced('instance', font.instances)
 
 
 if __name__ == '__main__':
