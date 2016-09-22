@@ -64,7 +64,7 @@ def main():
             instance.customParameters['compatibleFullName'] = '%s %s' % (font.familyName, instance.name)
 
         # familyName Regular Italic -> familyName Italic
-        if instance.customParameters['postscriptFullName'] == '%s Regular Italic' % (font.familyName:
+        if instance.customParameters['postscriptFullName'] == '%s Regular Italic' % (font.familyName):
             instance.customParameters['postscriptFullName'] = '%s Italic' % (font.familyName)
             instance.customParameters['compatibleFullName'] = '%s Italic' % (font.familyName)
 
