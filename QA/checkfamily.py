@@ -85,6 +85,7 @@ def main_glyphs():
 
 def main(**kwargs):
     font = Glyphs.font
+    Glyphs.showMacroWindow()
 
     qa_spec = json.load(open(script_path + '/QA/qa.json', 'r'))
 

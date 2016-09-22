@@ -139,6 +139,7 @@ def check_family_fstype(font_fstype):
 def main():
     # Check project structure
     font = Glyphs.font
+    Glyphs.showMacroWindow()
     file_exists(PROJECT_FILES['readme'], project_dir)
     file_exists(PROJECT_FILES['licence'], project_dir)
     file_exists(PROJECT_FILES['contributors'], project_dir)

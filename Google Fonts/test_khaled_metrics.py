@@ -130,6 +130,7 @@ def compare(arg1_name, arg1_val, op, arg2_name, arg2_val):
 def main_glyphsapp():
     print('***KHALED METRICS SCHEME***\n')
     font = Glyphs.font
+    Glyphs.showMacroWindow()
     ymin, ymax = shortest_tallest_glyphs(font)
     family_ascender, family_descender = ascender_descender(font)
 

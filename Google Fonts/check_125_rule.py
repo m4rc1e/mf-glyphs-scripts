@@ -8,6 +8,7 @@ Check 125% metrics rule.
 def main():
     font = Glyphs.font
     masters = font.masters
+    Glyphs.showMacroWindow()
 
     high_glyph = 0
     for i, master in enumerate(masters):

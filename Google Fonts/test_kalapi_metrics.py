@@ -130,6 +130,7 @@ def compare(arg1_name, arg1_val, op, arg2_name, arg2_val):
 def main_glyphsapp():
     print('***KALAPI METRICS SCHEME***\n')
     font = Glyphs.font
+    Glyphs.showMacroWindow()
     ymin, ymax = shortest_tallest_glyphs(font)
     shortest_glyph, tallest_glyph = shortest_tallest_glyphs(font, 'h', 'H')
     family_ascender, family_descender = ascender_descender(font)
