@@ -54,6 +54,7 @@ class GlyphsUI(object):
         self._checkbox('glyph_nbspace_space', "nbspace and space are same width")
         self._checkbox('glyphs_missing_conts_or_comps', "Glyphs missing contours or components")
         self._checkbox('glyphs_duplicate_components', "Glyphs with duplicate components")
+        self._checkbox('glyphs_zero_width', "Glyphs which should be zero width")
 
         # Check button
         self.w.button = vanilla.Button((14, self.leading+40, 300, 20), "Check", callback=self.buttonCallback)
@@ -113,6 +114,9 @@ def main(**kwargs):
 
     if 'glyphs_duplicate_components' in kwargs and kwargs['glyphs_duplicate_components'].get() == 1:
         glyphs.find_duplicate_components(font.glyphs)
+
+    if 'glyphs_zero_width' in kwargs and kwargs['glyphs_zero_width'].get() == 1:
+        glyphs.zero_width(font.glyphs)
 
     print "***Check Vertical Metrics***"
     if 'metrics_fam_vals' in kwargs and kwargs['metrics_fam_vals'].get() == 1:
