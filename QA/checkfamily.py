@@ -23,6 +23,7 @@ from QA import (
     glyphs,
     fontinfo,
     metrics,
+    otfeatures,
 )
 
 
@@ -54,6 +55,10 @@ class GlyphsUI(object):
         self._checkbox('glyph_nbspace_space', "nbspace and space are same width")
         self._checkbox('glyphs_missing_conts_or_comps', "Glyphs missing contours or components")
         self._checkbox('glyphs_duplicate_components', "Glyphs with duplicate components")
+
+        # Check OT Features
+        self._heading('Glyphs:')
+        self._checkbox('ot_dynamic_frac', "Has Dynamic fraction?")
 
         # Check button
         self.w.button = vanilla.Button((14, self.leading+40, 300, 20), "Check", callback=self.buttonCallback)
@@ -114,6 +119,10 @@ def main(**kwargs):
 
     if 'glyphs_duplicate_components' in kwargs and kwargs['glyphs_duplicate_components'].get() == 1:
         glyphs.find_duplicate_components(font.glyphs)
+
+    print "***Check OT Features***"
+    if 'ot_dynamic_frac' in kwargs and kwargs['ot_dynamic_frac'].get() == 1:
+        otfeatures.dynamic_fraction(font)
 
     print "***Check Vertical Metrics***"
     if 'metrics_fam_vals' in kwargs and kwargs['metrics_fam_vals'].get() == 1:
