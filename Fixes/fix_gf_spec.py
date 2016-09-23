@@ -19,6 +19,13 @@ def main():
     if 'panose' in font.customParameters:
         del font.customParameters['panose']
 
+    # Add http:// to manufacturerURL and designerURL if they don't exist
+    if not font.manufacturerURL.startswith('http://'):
+        font.manufacturerURL = 'http://' + font.manufacturerURL
+
+    if not font.designerURL.startswith('http://'):
+        font.designerURL = 'http://' + font.designerURL
+
     # Remove glyph order
     if 'glyphOrder' in font.customParameters:
         del font.customParameters['glyphOrder']
