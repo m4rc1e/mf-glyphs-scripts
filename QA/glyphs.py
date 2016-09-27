@@ -45,7 +45,7 @@ def find_duplicate_components(glyphs):
     the same affine transformation.
     This happens when Glyphs generates a glyph like quotedblright.'''
     print '**Find duplicate components that share the same position/transformation.**'
-    no_error = True;
+    no_error = True
     for glyph in glyphs:
         for layer in glyph.layers:
             all_transformations = {}
