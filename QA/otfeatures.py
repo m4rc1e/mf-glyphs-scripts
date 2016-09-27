@@ -3,9 +3,6 @@ def dynamic_fraction(font):
     print '**Checking frac feature**'
     if 'fivesuperior' in font.glyphs:
         if font.features['frac']:
-            if font.features['frac'].automatic:
-                print 'ERROR: Font should not have auto frac feature\n'
-                return
             if "'" in str(font.features['frac'].code):
                 print 'PASS: Font has dynamic frac feature\n'
             else:

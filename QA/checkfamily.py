@@ -57,7 +57,7 @@ class GlyphsUI(object):
         self._checkbox('glyphs_duplicate_components', "Glyphs with duplicate components")
 
         # Check OT Features
-        self._heading('Glyphs:')
+        self._heading('OT Features:')
         self._checkbox('ot_dynamic_frac', "Has Dynamic fraction?")
 
         # Check button
