@@ -62,13 +62,9 @@ def main():
         # Set CR so width matches space
         font.glyphs['CR'].layers[i].width = font.glyphs['space'].layers[i].width
 
-
     # fix instance names to pass gf spec
     for i, instance in enumerate(instances):
-        if not instance.customParameters['compatibleFullName']:
-            instance.customParameters['compatibleFullName'] = '%s %s' % (font.familyName, instance.name)
-
-        if 'Italic' in instance.customParameters['compatibleFullName']:
+        if 'Italic' in instance.name:
             instance.isItalic = True
             instance.linkStyle = instance.weight
 
@@ -76,7 +72,6 @@ def main():
         if instance.width == 'Condensed':
             condensed_family_name = '%s %s' % (font.familyName, instance.width)
             instance.customParameters['familyName'] = condensed_family_name
-            instance.customParameters['compatibleFullName'] = '%s %s' % (condensed_family_name, instance.name)
 
         if instance.weight == 'Bold':
             instance.isBold = True
@@ -92,12 +87,6 @@ def main():
             instance.customParameters['familyName'] = '%s Heavy' % (font.familyName)
             instance.name = instance.name.replace('Heavy', 'Regular')
             instance.weight = 'Regular'
-            instance.customParameters['compatibleFullName'] = '%s Heavy %s' % (font.familyName, instance.name)
-
-        # familyName Regular Italic -> familyName Italic
-        if 'Regular Italic' in instance.customParameters['compatibleFullName']:
-            c_name = instance.customParameters['compatibleFullName']
-            instance.customParameters['compatibleFullName'] = ' '.join(c_name.split(' Regular '))
 
         if instance.name == 'Regular Italic':
             instance.name = 'Italic'
