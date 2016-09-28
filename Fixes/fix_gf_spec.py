@@ -87,6 +87,10 @@ def main():
         else:
             instance.isBold = False
 
+        # Change ExtraLight weight class from 250 to 275
+        if instance.weight == 'ExtraLight':
+            instance.customParameters['weightClass'] = 275
+
 
 if __name__ == '__main__':
     main()
