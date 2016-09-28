@@ -68,10 +68,6 @@ def main():
         if not instance.customParameters['compatibleFullName']:
             instance.customParameters['compatibleFullName'] = '%s %s' % (font.familyName, instance.name)
 
-        # familyName Regular Italic -> familyName Italic
-        if instance.customParameters['compatibleFullName'] == '%s Regular Italic' % (font.familyName):
-            instance.customParameters['compatibleFullName'] = '%s Italic' % (font.familyName)
-
         if 'Italic' in instance.customParameters['compatibleFullName']:
             instance.isItalic = True
             instance.linkStyle = instance.weight
@@ -90,6 +86,21 @@ def main():
         # Change ExtraLight weight class from 250 to 275
         if instance.weight == 'ExtraLight':
             instance.customParameters['weightClass'] = 275
+
+        # If Heavy exists, create a new font family for it
+        if 'Heavy' in instance.name:
+            instance.customParameters['familyName'] = '%s Heavy' % (font.familyName)
+            instance.name = instance.name.replace('Heavy', 'Regular')
+            instance.weight = 'Regular'
+            instance.customParameters['compatibleFullName'] = '%s Heavy %s' % (font.familyName, instance.name)
+
+        # familyName Regular Italic -> familyName Italic
+        if 'Regular Italic' in instance.customParameters['compatibleFullName']:
+            c_name = instance.customParameters['compatibleFullName']
+            instance.customParameters['compatibleFullName'] = ' '.join(c_name.split(' Regular '))
+
+        if instance.name == 'Regular Italic':
+            instance.name = 'Italic'
 
 
 if __name__ == '__main__':
