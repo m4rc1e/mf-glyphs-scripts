@@ -63,21 +63,29 @@ def main():
         font.glyphs['CR'].layers[i].width = font.glyphs['space'].layers[i].width
 
 
-    # fix instance names to pass Font Bakery
+    # fix instance names to pass gf spec
     for i, instance in enumerate(instances):
-        if not instance.customParameters['postscriptFullName']:
-            instance.customParameters['postscriptFullName'] = '%s %s' % (font.familyName, instance.name)
         if not instance.customParameters['compatibleFullName']:
             instance.customParameters['compatibleFullName'] = '%s %s' % (font.familyName, instance.name)
 
         # familyName Regular Italic -> familyName Italic
-        if instance.customParameters['postscriptFullName'] == '%s Regular Italic' % (font.familyName):
-            instance.customParameters['postscriptFullName'] = '%s Italic' % (font.familyName)
+        if instance.customParameters['compatibleFullName'] == '%s Regular Italic' % (font.familyName):
             instance.customParameters['compatibleFullName'] = '%s Italic' % (font.familyName)
 
-        if 'Italic' in instance.customParameters['postscriptFullName']:
+        if 'Italic' in instance.customParameters['compatibleFullName']:
             instance.isItalic = True
             instance.linkStyle = instance.weight
+
+        # Seperate Condensed weights into their own family
+        if instance.width == 'Condensed':
+            condensed_family_name = '%s %s' % (font.familyName, instance.width)
+            instance.customParameters['familyName'] = condensed_family_name
+            instance.customParameters['compatibleFullName'] = '%s %s' % (condensed_family_name, instance.name)
+
+        if instance.weight == 'Bold':
+            instance.isBold = True
+        else:
+            instance.isBold = False
 
 
 if __name__ == '__main__':
