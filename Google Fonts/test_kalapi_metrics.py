@@ -136,30 +136,33 @@ def main_glyphsapp():
     family_ascender, family_descender = ascender_descender(font)
 
     vmetric_fields = vert_keys(font)
+    if vmetric_fields:
+        print('\n***Instances share same vertical metrics***')
+        consistent_vert_instances = vert_metrics_match(font)
+    else:
+        print('\nERROR: Add all Vertical metrics fields')
+        return
 
-    print('\n***Instances share same vertical metrics***')
-    consistent_vert_instances = vert_metrics_match(font)
-
-    if vmetric_fields and consistent_vert_instances:
+    if consistent_vert_instances:
         master = font.masters[0]
         vmfield = master.customParameters
-
-        print("\n***Check vertical metrics match***")
-
-        compare('Win Ascent', vmfield['winAscent'], '>=', 'yMax', ymax)
-        compare('Win Descent', vmfield['winDescent'], '>=', 'yMin', abs(ymin)) # abs so its a positive integer
-
-        compare('Typo Ascender', vmfield['typoAscender'], '==', 'Tallest h or H', tallest_glyph)
-        compare('Typo Descender', vmfield['typoDescender'], '==', 'UPM - Typo Asc', -(font.upm - vmfield['typoAscender']))
-
-        compare('Typo Ascender', vmfield['typoAscender'], '==', 'hhea Ascender', vmfield['hheaAscender'])
-        compare('Typo Descender', vmfield['typoDescender'], '==', 'hhea Descender', vmfield['hheaDescender'])
-
-        compare('Typo Line Gap', vmfield['typoLineGap'], '==', 'Line Gap', LINE_GAP)
-        compare('hhea Line Gap', vmfield['hheaLineGap'], '==', 'Line Gap', LINE_GAP)
     else:
-        print('\nERROR: Add all Vertical metrics fields for each instance first \
-              and check each instance has same metrics')
+        print('\nERROR: Check each instances have the same metrics')
+        return
+
+    print("\n***Check vertical metrics match***")
+
+    compare('Win Ascent', vmfield['winAscent'], '>=', 'yMax', ymax)
+    compare('Win Descent', vmfield['winDescent'], '>=', 'yMin', abs(ymin)) # abs so its a positive integer
+
+    compare('Typo Ascender', vmfield['typoAscender'], '==', 'Tallest h or H', tallest_glyph)
+    compare('Typo Descender', vmfield['typoDescender'], '==', 'UPM - Typo Asc', -(font.upm - vmfield['typoAscender']))
+
+    compare('Typo Ascender', vmfield['typoAscender'], '==', 'hhea Ascender', vmfield['hheaAscender'])
+    compare('Typo Descender', vmfield['typoDescender'], '==', 'hhea Descender', vmfield['hheaDescender'])
+
+    compare('Typo Line Gap', vmfield['typoLineGap'], '==', 'Line Gap', LINE_GAP)
+    compare('hhea Line Gap', vmfield['hheaLineGap'], '==', 'Line Gap', LINE_GAP)
 
 
 if __name__ == '__main__':
