@@ -12,7 +12,7 @@ def main():
     font = Glyphs.font
     font.customParameters['license'] = 'This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: http://scripts.sil.org/OFL'
     font.customParameters['licenseURL'] = 'http://scripts.sil.org/OFL'
-    font.customParameters['fsType'] = 0
+    font.customParameters['fsType'] = []
     font.customParameters['Use Typo Metrics'] = True
 
     # Delete panose constant for family. Panose should be unique for each instance
@@ -20,11 +20,17 @@ def main():
         del font.customParameters['panose']
 
     # Add http:// to manufacturerURL and designerURL if they don't exist
-    if not font.manufacturerURL.startswith('http://'):
-        font.manufacturerURL = 'http://' + font.manufacturerURL
+    if font.manufacturerURL:
+        if not font.manufacturerURL.startswith('http://'):
+            font.manufacturerURL = 'http://' + font.manufacturerURL
+    else:
+        print 'WARNING: manufacturerURL is missing'
 
-    if not font.designerURL.startswith('http://'):
-        font.designerURL = 'http://' + font.designerURL
+    if font.designerURL:
+        if not font.designerURL.startswith('http://'):
+            font.designerURL = 'http://' + font.designerURL
+    else:
+        print 'WARNING: designerURL is missing'
 
     # Remove glyph order
     if 'glyphOrder' in font.customParameters:
@@ -51,6 +57,7 @@ def main():
     if not font.glyphs['NULL'] or font.glyphs['.null']:
         null = GSGlyph()
         null.name = 'NULL'
+        null.unicode = unicode('0000')
         font.glyphs.append(null)
 
     # fix width glyphs
