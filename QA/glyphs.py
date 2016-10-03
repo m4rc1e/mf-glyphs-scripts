@@ -4,6 +4,8 @@ import unicodedata as uni
 IGNORE_GLYPHS_OUTLINE = [
     'uni0000',
     'NULL',
+    'CR',
+    'nbspace',
 ]
 
 
