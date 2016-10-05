@@ -3,7 +3,12 @@ import unicodedata as uni
 
 IGNORE_GLYPHS_OUTLINE = [
     'uni0000',
+    'uni0002',
+    'uni0009',
+    'uni000A',
     'NULL',
+    'null',
+    '.null',
     'CR',
     'nbspace',
 ]
@@ -75,3 +80,40 @@ def find_duplicate_components(glyphs):
                                                 count_t=len(transformations))
     if no_error:
         print 'PASS: no duplicate components share the same spot.\n'
+
+
+def find_missing_components(glyphs, layers):
+    """Check composites match GlyphsApp's GlyphData.xml
+
+    .case suffixes are stripped during the check eg:
+    acute.comb -> acute"""
+    print '**Find glyphs which should have components**'
+    component_map = {}
+    bad_glyphs = []
+
+    for glyph in glyphs:
+        component_map[glyph.name] = []
+        try:
+            for component in glyph.glyphInfo.components:
+                    component_map[glyph.name].append(component.name.split('.')[0])
+        except:
+            all
+
+    for glyph in glyphs:
+        if glyph.category == 'Letter':
+            for i, master in enumerate(layers):
+                no_case_comp_names = set(g.componentName.split('.')[0] for
+                                         g in glyph.layers[i].components)
+                if set(component_map[glyph.name]) - no_case_comp_names:
+                    bad_glyphs.append(
+                        (glyph.name,
+                         glyph.layers[i].name,
+                         set(component_map[glyph.name]) - no_case_comp_names)
+                    )
+
+    if bad_glyphs:
+        for glyph, layer, comps in bad_glyphs:
+            print "WARNING: %s %s missing '%s'" % (glyph, layer, ', '.join(comps))
+        print '\n'
+    else:
+        print "PASS: Fonts have the same components as GlyphData.xml\n"

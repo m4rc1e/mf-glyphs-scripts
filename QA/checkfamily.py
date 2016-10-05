@@ -53,8 +53,9 @@ class GlyphsUI(object):
         self._heading('Glyphs:')
         self._checkbox('glyph_no_dups', "No duplicate glyphs")
         self._checkbox('glyph_nbspace_space', "nbspace and space are same width")
-        self._checkbox('glyphs_missing_conts_or_comps', "Glyphs missing contours or components")
+        self._checkbox('glyphs_missing_conts_or_comps', "Glyphs missing contours")
         self._checkbox('glyphs_duplicate_components', "Glyphs with duplicate components")
+        self._checkbox('glyphs_missing_components', "Glyphs missing GlyphData.xml components", value=False)
 
         # Check OT Features
         self._heading('OT Features:')
@@ -119,6 +120,9 @@ def main(**kwargs):
 
     if 'glyphs_duplicate_components' in kwargs and kwargs['glyphs_duplicate_components'].get() == 1:
         glyphs.find_duplicate_components(font.glyphs)
+
+    if 'glyphs_missing_components' in kwargs and kwargs['glyphs_missing_components'].get() == 1:
+        glyphs.find_missing_components(font.glyphs, [i.id for i in font.masters])
 
     print "***Check OT Features***"
     if 'ot_dynamic_frac' in kwargs and kwargs['ot_dynamic_frac'].get() == 1:
