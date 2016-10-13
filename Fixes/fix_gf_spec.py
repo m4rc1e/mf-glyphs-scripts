@@ -14,6 +14,8 @@ def main():
     font.customParameters['licenseURL'] = 'http://scripts.sil.org/OFL'
     font.customParameters['fsType'] = []
     font.customParameters['Use Typo Metrics'] = True
+    font.customParameters['Disable Last Change'] = True
+    font.customParameters['Use Line Breaks'] = True
 
     # Delete panose constant for family. Panose should be unique for each instance
     if 'panose' in font.customParameters:
