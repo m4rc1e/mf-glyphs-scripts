@@ -75,8 +75,10 @@ def main():
     for i, instance in enumerate(instances):
         if 'Italic' in instance.name:
             instance.isItalic = True
-            if instance.weight != 'Bold':
+            if instance.weight != 'Bold' and instance.weight != 'Regular':
                 instance.linkStyle = instance.weight
+            else:
+                instance.linkStyle = ''
 
         # Seperate Condensed weights into their own family
         if instance.width == 'Condensed':
