@@ -5,6 +5,10 @@ Fix/add requirements from ProjectChecklist.md
 
 from datetime import datetime
 
+BAD_PARAMETERS = [
+    'openTypeNameLicense',
+    'openTypeNameLicenseURL'
+]
 
 def main():
     # Add README file if it does not exist
@@ -16,6 +20,10 @@ def main():
     font.customParameters['Use Typo Metrics'] = True
     font.customParameters['Disable Last Change'] = True
     font.customParameters['Use Line Breaks'] = True
+
+    # Delete unnecessary customParamters
+    for key in BAD_PARAMETERS:
+        del font.customParameters[key]
 
     # Delete panose constant for family. Panose should be unique for each instance
     if 'panose' in font.customParameters:
