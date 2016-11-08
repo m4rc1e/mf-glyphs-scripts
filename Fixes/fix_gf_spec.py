@@ -7,7 +7,8 @@ from datetime import datetime
 
 BAD_PARAMETERS = [
     'openTypeNameLicense',
-    'openTypeNameLicenseURL'
+    'openTypeNameLicenseURL',
+    'panose',
 ]
 
 def main():
@@ -24,10 +25,6 @@ def main():
     # Delete unnecessary customParamters
     for key in BAD_PARAMETERS:
         del font.customParameters[key]
-
-    # Delete panose constant for family. Panose should be unique for each instance
-    if 'panose' in font.customParameters:
-        del font.customParameters['panose']
 
     # Add http:// to manufacturerURL and designerURL if they don't exist
     if font.manufacturerURL:
