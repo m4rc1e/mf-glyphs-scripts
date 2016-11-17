@@ -1,3 +1,4 @@
+#MenuTitle: Inherit legacy vertical metrics
 """
 Replace Master vertical metrics with values from fonts hosted on
 fonts.google.com
