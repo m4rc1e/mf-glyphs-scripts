@@ -210,6 +210,7 @@ def main():
                 local_master_metrics['winAscent'] = ymax
                 print 'UPDATING: %s winDescent to %s' % (master_name, ymin)
                 local_master_metrics['winDescent'] = ymin
+                local_font.customParameters['Use Typo Metrics'] = True
             
 
     else:
