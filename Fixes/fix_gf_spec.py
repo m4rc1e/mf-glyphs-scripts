@@ -9,6 +9,10 @@ BAD_PARAMETERS = [
     'openTypeNameLicense',
     'openTypeNameLicenseURL',
     'panose',
+    'unicodeRanges',
+    'codePageRanges',
+    'openTypeNameDescription',
+    'Family Alignment Zones',
 ]
 
 def main():
@@ -18,7 +22,7 @@ def main():
     font.customParameters['license'] = 'This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: http://scripts.sil.org/OFL'
     font.customParameters['licenseURL'] = 'http://scripts.sil.org/OFL'
     font.customParameters['fsType'] = []
-    font.customParameters['Use Typo Metrics'] = True
+    # font.customParameters['Use Typo Metrics'] = True
     font.customParameters['Disable Last Change'] = True
     font.customParameters['Use Line Breaks'] = True
 
