@@ -44,6 +44,7 @@ FONT_TO_MASTER_WEIGHT = {
     'ExtraLightItalic': 'Light',
     'LightItalic': 'Light',
     'NormalItalic': 'Regular',
+    'Italic': 'Regular',
     'RegularItalic': 'Regular',
     'MediumItalic': 'Regular',
     'DemiBoldItalic': 'SemiBold',
@@ -75,6 +76,7 @@ FONT_STYLE_ORDER = [
     'ExtraLightItalic',
     'LightItalic',
     'NormalItalic',
+    'Italic',
     'RegularItalic',
     'MediumItalic',
     'SemiBoldItalic',
@@ -147,13 +149,6 @@ def normalize_ttf_metric_vals(upm, fonts, target_upm):
     return metrics
 
 
-def _master_name(master):
-    if master.italicAngle != 0.0:
-        return '%sItalic' % (master.weight)
-    else:
-        return '%s' % master.weight
-
-
 def shared_styles(styles, fonts):
     return [s for s in FONT_STYLE_ORDER if s in styles and s in fonts]
 
@@ -186,10 +181,10 @@ def main():
         remote_metrics = normalize_ttf_metric_keys(remote_fonts)
         remote_metrics = normalize_ttf_metric_vals(remote_upm[0], remote_metrics, local_font.upm)
 
-        master_names_to_ids = {_master_name(m): m.id for m in local_font.masters}
+        master_names_to_ids = {m.weight: m.id for m in local_font.masters}
         master_names = master_names_to_ids.keys()
 
-        local_styles = [f.name for f in local_font.instances]
+        local_styles = [f.name.replace(' ', '') for f in local_font.instances]
         remote_styles = remote_metrics.keys()
         sharedstyles = shared_styles(local_styles, remote_styles)
 
