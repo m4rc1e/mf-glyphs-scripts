@@ -12,9 +12,12 @@ from urllib import urlopen
 from glob import glob
 import operator
 
-API_URL_PREFIX = 'https://fonts.google.com/download?family='
-FIX = True
+from test_kalapi_metrics import shortest_tallest_glyphs
 
+API_URL_PREFIX = 'https://fonts.google.com/download?family='
+
+FIX = True
+FIX_WIN_METRICS = True
 OPERATORS = {
     '>=': operator.ge,
     '==': operator.eq,
@@ -168,7 +171,7 @@ def fonts_to_masters(masters, remote_metrics, shared_styles):
 
 def main():
     local_font = Glyphs.font
-
+    ymin, ymax = shortest_tallest_glyphs(local_font)
     remote_family_url = font_family_url(local_font.familyName)
     url = urlopen(remote_family_url)
     font_zipfile = ZipFile(StringIO(url.read()))
@@ -196,10 +199,18 @@ def main():
 
             print '\nMaster: %s Font: %s ' % (master_name, font_name)
             for key in remote_metrics[font_name]:
-                if FIX:
-                    local_master_metrics[key] = remote_font_metrics[key]
                 compare('local %s' % key, local_master_metrics[key], '==',
                         'remote %s' % key, remote_font_metrics[key], e_type='ERROR')
+                if FIX and local_master_metrics[key] != remote_font_metrics[key]:
+                    print 'FIXING: %s %s' % (master_name, key)
+                    local_master_metrics[key] = remote_font_metrics[key]
+
+            if FIX_WIN_METRICS:
+                print 'UPDATING: %s winAscent to %s' % (master_name, ymax)
+                local_master_metrics['winAscent'] = ymax
+                print 'UPDATING: %s winDescent to %s' % (master_name, ymin)
+                local_master_metrics['winDescent'] = ymin
+            
 
     else:
         print 'ERROR: remote fonts have multiple upms. Manual intervention needed'
