@@ -3,6 +3,7 @@
 Replace Master vertical metrics with values from fonts hosted on
 fonts.google.com
 """
+import vanilla
 import urllib
 from fontTools.ttLib import TTFont
 
@@ -13,11 +14,18 @@ from glob import glob
 import operator
 
 from test_kalapi_metrics import shortest_tallest_glyphs
+script_path = os.path.abspath('..')
+if script_path not in sys.path:
+    sys.path.append(script_path)
+from wrappers import GlyphsUI
 
 API_URL_PREFIX = 'https://fonts.google.com/download?family='
 
 FIX = True
 FIX_WIN_METRICS = True
+ASSIGN_FONT_TO_ALL_METRICS = False
+ASSIGN_FONT = 'Regular'
+
 OPERATORS = {
     '>=': operator.ge,
     '==': operator.eq,
@@ -90,6 +98,31 @@ FONT_STYLE_ORDER = [
     'UltraBoldItalic',
     'BoldItalic',
 ]
+
+
+class InheritMetricsUI(GlyphsUI):
+    def __init__(self, fonts, title):
+        GlyphsUI.__init__(self, title)
+
+        self.fonts = fonts
+
+        self._heading('Fix')
+        self._checkbox('fix_metrics', 'Match vertical metrics', value=False)
+        self._checkbox('fix_win', 'Update Win Ascent/Descent', value=False)
+
+        self._heading('Inherit')
+        self._checkbox('assign', 'Apply font to all masters', value=False)
+        self._combobox('assign_font', [f for f in self.fonts])
+
+        # Check button
+        self.w.button = vanilla.Button((14, self.leading+40, 300, 20),
+                                       "Check/Fix",
+                                       callback=self.buttonCallback)
+        # Resize window to fit all tests
+        self.w.setPosSize((100.0, 100.0, 350.0, self.leading + 75))
+
+    def buttonCallback(self, sender):
+        main(**self.w.__dict__)
 
 
 def font_family_url(family_name):
@@ -169,7 +202,18 @@ def fonts_to_masters(masters, remote_metrics, shared_styles):
     return {k: metrics[k] for k in metrics if k in masters}
 
 
-def main():
+def main_glyphs():
+    local_font = Glyphs.font
+    remote_family_url = font_family_url(local_font.familyName)
+    url = urlopen(remote_family_url)
+
+    font_zipfile = ZipFile(StringIO(url.read()))
+    fonts = [f for f in font_zipfile.namelist() if 'ttf' in f]
+
+    ui = InheritMetricsUI(fonts, 'Inherit vertical metrics from fonts.google.com')
+
+
+def main(**kwargs):
     local_font = Glyphs.font
     ymin, ymax = shortest_tallest_glyphs(local_font)
     remote_family_url = font_family_url(local_font.familyName)
@@ -192,6 +236,7 @@ def main():
         sharedstyles = shared_styles(local_styles, remote_styles)
 
         font_master_mapping = fonts_to_masters(master_names, remote_metrics, sharedstyles)
+        
         print '***Check vertical metrics match hosted version on fonts.google.com***'
         for master_name, font_name in font_master_mapping.items():
             local_master_metrics = local_font.masters[master_names_to_ids[master_name]].customParameters
@@ -201,21 +246,26 @@ def main():
             for key in remote_metrics[font_name]:
                 compare('local %s' % key, local_master_metrics[key], '==',
                         'remote %s' % key, remote_font_metrics[key], e_type='ERROR')
-                if FIX and local_master_metrics[key] != remote_font_metrics[key]:
-                    print 'FIXING: %s %s' % (master_name, key)
+                if kwargs['fix_metrics'].get() == 1 and local_master_metrics[key] != remote_font_metrics[key]:
+                    print 'FIXING: %s %s to %s' % (master_name, key, remote_font_metrics[key])
+                if kwargs['assign'].get() == 1:
+                    print dir(kwargs['assign_font'].get())
+                    print kwargs['assign_font'].get()
+                    print font_master_mapping[kwargs['assign_font'].get()]
                     local_master_metrics[key] = remote_font_metrics[key]
 
-            if FIX_WIN_METRICS:
+                # elif ASSIGN_FONT_TO_ALL_METRICS and local_master_metrics[key] != remote_font_metrics[ASSIGN_FONT]:
+
+            if kwargs['fix_win'].get() == 1:
                 print 'UPDATING: %s winAscent to %s' % (master_name, ymax)
                 local_master_metrics['winAscent'] = ymax
                 print 'UPDATING: %s winDescent to %s' % (master_name, ymin)
                 local_master_metrics['winDescent'] = ymin
                 local_font.customParameters['Use Typo Metrics'] = True
-            
 
     else:
         print 'ERROR: remote fonts have multiple upms. Manual intervention needed'
 
 
 if __name__ == '__main__':
-    main()
+    main_glyphs()
