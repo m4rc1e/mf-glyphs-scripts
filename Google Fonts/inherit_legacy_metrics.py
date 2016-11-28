@@ -107,7 +107,7 @@ class InheritMetricsUI(GlyphsUI):
         self.fonts = fonts
 
         self._heading('Fix')
-        self._checkbox('fix_metrics', 'Match vertical metrics', value=False)
+        self._checkbox('fix_metrics', 'Update vertical metrics', value=False)
         self._checkbox('fix_win', 'Update Win Ascent/Descent', value=False)
 
         self._heading('Inherit')
@@ -122,7 +122,7 @@ class InheritMetricsUI(GlyphsUI):
         self.w.setPosSize((100.0, 100.0, 350.0, self.leading + 75))
 
     def buttonCallback(self, sender):
-        main(**self.w.__dict__)
+        main(self.fonts, **self.w.__dict__)
 
 
 def font_family_url(family_name):
@@ -147,7 +147,13 @@ def fonts_from_zip(zipfile):
     for file_name in zipfile.namelist():
         if 'ttf' in file_name:
             ttfs.append(file_name)
-    return [TTFont(zipfile.open(ttf)) for ttf in ttfs]
+    return {ttf: TTFont(zipfile.open(ttf)) for ttf in ttfs}
+
+
+def font_style(ps_name):
+    if ps_name.split('-')[-1] not in FONT_STYLE_ORDER:
+        return 'Regular'
+    return ps_name.split('-')[-1]
 
 
 def normalize_ttf_metric_keys(fonts):
@@ -156,7 +162,7 @@ def normalize_ttf_metric_keys(fonts):
 
     for font in fonts:
         # mac postscript name
-        font_name = str(font['name'].getName(6, 1, 0, 0)).split('-')[-1]
+        font_name = font_style(str(font['name'].getName(6, 1, 0, 0)))
         metrics[font_name] = {}
         # OS/2
         metrics[font_name]['typoAscender'] = font['OS/2'].sTypoAscender
@@ -213,7 +219,7 @@ def main_glyphs():
     ui = InheritMetricsUI(fonts, 'Inherit vertical metrics from fonts.google.com')
 
 
-def main(**kwargs):
+def main(ui_fonts, **kwargs):
     local_font = Glyphs.font
     ymin, ymax = shortest_tallest_glyphs(local_font)
     remote_family_url = font_family_url(local_font.familyName)
@@ -221,11 +227,11 @@ def main(**kwargs):
     font_zipfile = ZipFile(StringIO(url.read()))
 
     remote_fonts = fonts_from_zip(font_zipfile)
-    remote_upm = set(f['head'].unitsPerEm for f in remote_fonts)
+    remote_upm = set(f['head'].unitsPerEm for f in remote_fonts.values())
     remote_upm = list(remote_upm)
 
     if len(remote_upm) == 1:
-        remote_metrics = normalize_ttf_metric_keys(remote_fonts)
+        remote_metrics = normalize_ttf_metric_keys(remote_fonts.values())
         remote_metrics = normalize_ttf_metric_vals(remote_upm[0], remote_metrics, local_font.upm)
 
         master_names_to_ids = {m.weight: m.id for m in local_font.masters}
@@ -236,7 +242,7 @@ def main(**kwargs):
         sharedstyles = shared_styles(local_styles, remote_styles)
 
         font_master_mapping = fonts_to_masters(master_names, remote_metrics, sharedstyles)
-        
+
         print '***Check vertical metrics match hosted version on fonts.google.com***'
         for master_name, font_name in font_master_mapping.items():
             local_master_metrics = local_font.masters[master_names_to_ids[master_name]].customParameters
@@ -246,15 +252,23 @@ def main(**kwargs):
             for key in remote_metrics[font_name]:
                 compare('local %s' % key, local_master_metrics[key], '==',
                         'remote %s' % key, remote_font_metrics[key], e_type='ERROR')
-                if kwargs['fix_metrics'].get() == 1 and local_master_metrics[key] != remote_font_metrics[key]:
+
+                if kwargs['fix_metrics'].get() == 1 and \
+                   local_master_metrics[key] != remote_font_metrics[key] and \
+                   kwargs['assign'].get() == 0:
                     print 'FIXING: %s %s to %s' % (master_name, key, remote_font_metrics[key])
-                if kwargs['assign'].get() == 1:
-                    print dir(kwargs['assign_font'].get())
-                    print kwargs['assign_font'].get()
-                    print font_master_mapping[kwargs['assign_font'].get()]
                     local_master_metrics[key] = remote_font_metrics[key]
 
-                # elif ASSIGN_FONT_TO_ALL_METRICS and local_master_metrics[key] != remote_font_metrics[ASSIGN_FONT]:
+                if kwargs['assign'].get() == 1:
+                    sel_font = ui_fonts[kwargs['assign_font'].get()]
+                    ps_name = remote_fonts[sel_font]['name'].getName(6, 1, 0, 0)
+                    style = font_style(str(ps_name))
+
+                if kwargs['fix_metrics'].get() == 1 and \
+                   local_master_metrics[key] != remote_metrics[style][key] and \
+                   kwargs['assign'].get() == 1:
+                    print 'FIXING: %s %s to %s' % (master_name, key, remote_metrics[style][key])
+                    local_master_metrics[key] = remote_metrics[style][key]
 
             if kwargs['fix_win'].get() == 1:
                 print 'UPDATING: %s winAscent to %s' % (master_name, ymax)
