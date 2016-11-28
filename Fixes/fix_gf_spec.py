@@ -57,19 +57,28 @@ def main():
         nbspace.unicode = unicode('00A0')
         font.glyphs.append(nbspace)
 
+    # if uni000D rename it
+    if font.glyphs['uni000D']:
+        font.glyphs['uni000D'].name = 'CR'
+
     # If CR does not exist, create it
-    if not font.glyphs['CR'] or font.glyphs['uni000D']:
+    if not font.glyphs['CR']:
         cr = GSGlyph()
         cr.name = 'CR'
-        cr.unicode = unicode('000D')
         font.glyphs.append(cr)
 
+    # if .null rename it
+    if font.glyphs['.null']:
+        font.glyphs['.null'].name = 'NULL'
+
     # If NULL does not exist, create it
-    if not font.glyphs['NULL'] or font.glyphs['.null']:
+    if not font.glyphs['NULL']:
         null = GSGlyph()
         null.name = 'NULL'
-        null.unicode = unicode('0000')
         font.glyphs.append(null)
+
+    font.glyphs['CR'].unicode = unicode('000D')
+    font.glyphs['NULL'].unicode = unicode('0000')
 
     # fix width glyphs
     for i, master in enumerate(masters):
