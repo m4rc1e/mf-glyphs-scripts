@@ -1,4 +1,6 @@
 #MenuTitle: Test repo matches gf-checklist structure
+# coding: utf-8
+
 '''
 Check project fulfills Google Font project Spec.
 
@@ -63,12 +65,20 @@ def folders_exist(directory):
 
 
 def check_ofl_matches_copyright_string(ofl, c_string):
-    if c_string not in ofl.readlines()[0]:
+    if c_string not in ofl.readlines()[0].decode('utf-8'):
         print('ERROR: First line of ofl does not match copyright')
         return False
     else:
         print('PASS: copyright matches')
         return True
+
+def check_copyright_string_contains(c_string, string):
+    if string in c_string:
+        print('PASS: %s in "%s"' % (string, c_string))
+        return True
+    else:
+        print('ERROR: %s not in "%s"' % (string, c_string))
+        return False
 
 
 def check_vendor_id_string(family_vendor):
@@ -148,6 +158,7 @@ def main():
     if file_exists(PROJECT_FILES['licence'], project_dir):
         with open(os.path.join(project_dir, PROJECT_FILES['licence']), 'r') as ofl_file:
             check_ofl_matches_copyright_string(ofl_file, Glyphs.fonts[0].copyright)
+            check_copyright_string_contains(Glyphs.fonts[0].copyright, 'Project Authors')
     else:
         print('cannot check first line of OFL matches copyright string')
 
