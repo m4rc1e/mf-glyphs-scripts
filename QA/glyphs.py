@@ -26,6 +26,19 @@ def find_duplicates(font_glyphs):
         print 'PASS: No duplicate glyphs\n'
 
 
+def find_00_glyphs(font_glyphs):
+    print '**Find glyphs with suffix .00**'
+    bad_glyphs = []
+    for glyph in font_glyphs:
+        if '.0' in glyph.name:
+            bad_glyphs.append(glyph.name)
+
+    if bad_glyphs:
+        print 'ERROR: font contains %s\n' % ', '.join(bad_glyphs)
+    else:
+        print 'PASS: font contains no .00x glyphs\n'
+
+
 def outlines_missing(font):
     '''Check if glyphs are missing outlines or composites.
     Only works on glyphs which have unicodes'''
