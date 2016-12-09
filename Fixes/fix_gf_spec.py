@@ -32,13 +32,13 @@ def main():
 
     # Add http:// to manufacturerURL and designerURL if they don't exist
     if font.manufacturerURL:
-        if not font.manufacturerURL.startswith('http://'):
+        if not font.manufacturerURL.startswith(('http://', 'https://')):
             font.manufacturerURL = 'http://' + font.manufacturerURL
     else:
         print 'WARNING: manufacturerURL is missing'
 
     if font.designerURL:
-        if not font.designerURL.startswith('http://'):
+        if not font.designerURL.startswith(('http://', 'https://')):
             font.designerURL = 'http://' + font.designerURL
     else:
         print 'WARNING: designerURL is missing'
