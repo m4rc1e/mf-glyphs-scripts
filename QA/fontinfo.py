@@ -47,3 +47,25 @@ def panose(font):
         print 'ERROR: Panose should be unique for each weight instance\n'
     else:
         print 'PASS: Panose is not set as an absolute for family\n'
+
+
+def check_names_length(font):
+    '''Check font fields will not be longer than 32 characters'''
+    bad_names = []
+    instances = font.instances
+
+    print '**Check Font Name Length**'
+    for instance in instances:
+        if instance.customParameters['familyName']:
+            fullname = '%s %s' % (instance.customParameters['familyName'], instance.name)
+        else:
+            fullname = '%s %s' % (font.familyName, instance.name)
+
+        if len(fullname) > 32:
+            bad_names.append(fullname)
+
+    if bad_names:
+        for name in bad_names:
+            print 'ERROR: %s is longder than 32 characters, length is %s' % (name, len(name))
+    else:
+        print 'PASS: Font names are under 32 characters\n'
