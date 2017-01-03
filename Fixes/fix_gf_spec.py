@@ -98,10 +98,14 @@ def main():
             else:
                 instance.linkStyle = ''
 
-        # Seperate Condensed weights into their own family
-        if instance.width == 'Condensed':
-            condensed_family_name = '%s %s' % (font.familyName, instance.width)
+        # Seperate non Reg/Medium weights into their own family
+        if instance.width != 'Medium (normal)':
+            family_suffix = instance.width
+            if family_suffix == 'Semi Expanded':
+                family_suffix = 'SemiExpanded'
+            condensed_family_name = '%s %s' % (font.familyName, family_suffix)
             instance.customParameters['familyName'] = condensed_family_name
+
 
         if instance.weight == 'Bold':
             instance.isBold = True
