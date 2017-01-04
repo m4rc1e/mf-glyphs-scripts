@@ -57,15 +57,17 @@ def check_names_length(font):
     print '**Check Font Name Length**'
     for instance in instances:
         if instance.customParameters['familyName']:
-            fullname = '%s %s' % (instance.customParameters['familyName'], instance.name)
+            fontname = instance.customParameters['familyName']
         else:
-            fullname = '%s %s' % (font.familyName, instance.name)
+            fontname = font.familyName
 
-        if len(fullname) > 32:
-            bad_names.append(fullname)
+        if len(fontname) > 31:
+            bad_names.append(fontname)
+        if len(instance.name) > 31:
+            bad_names.append(instance.name)
 
     if bad_names:
         for name in bad_names:
-            print 'ERROR: %s is longder than 32 characters, length is %s' % (name, len(name))
+            print 'ERROR: %s is longer than 31 characters, length is %s' % (name, len(name))
     else:
-        print 'PASS: Font names are under 32 characters\n'
+        print 'PASS: Font names are under 31 characters\n'

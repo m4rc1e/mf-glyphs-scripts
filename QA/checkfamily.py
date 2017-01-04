@@ -43,7 +43,7 @@ class GlyphsUI(object):
         for key in config_file:
             self._checkbox(key, '%s' % key)
         self._checkbox('check_family_name', "Check font name has ASCII chars only")
-        self._checkbox('check_names_length', "Check names are under 32 chars")
+        self._checkbox('check_names_length', "Check names are under 31 chars")
         self._checkbox('check_absolute_panose', "Check Panose is not assigned for all weights")
         
         # Vertical Metrics
