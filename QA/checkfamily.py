@@ -62,6 +62,7 @@ class GlyphsUI(object):
         # Check OT Features
         self._heading('OT Features:')
         self._checkbox('ot_dynamic_frac', "Has Dynamic fraction?")
+        self._checkbox('vietnamese_correct_schema', "Vietnamese GF Schema", value=False)
 
         # Check button
         self.w.button = vanilla.Button((14, self.leading+40, 300, 20), "Check", callback=self.buttonCallback)
@@ -135,6 +136,9 @@ def main(**kwargs):
     print "***Check OT Features***"
     if 'ot_dynamic_frac' in kwargs and kwargs['ot_dynamic_frac'].get() == 1:
         otfeatures.dynamic_fraction(font)
+
+    if 'vietnamese_correct_schema' in kwargs and kwargs['vietnamese_correct_schema'].get() == 1:
+        otfeatures.vietnamese_locl(font.features['locl'].code)
 
     print "***Check Vertical Metrics***"
     if 'metrics_fam_vals' in kwargs and kwargs['metrics_fam_vals'].get() == 1:
