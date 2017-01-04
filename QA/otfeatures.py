@@ -75,7 +75,7 @@ def vietnamese_locl(feature):
     if not missing_vietnamese_glyphs:
         print 'PASS: Localised Vietnamese glyphs exist'
     else:
-        print 'ERROR: Locailised Vietnamese missing following glyphs:'
+        print 'ERROR: Localised Vietnamese missing following glyphs:'
         for glyph in missing_vietnamese_glyphs:
             print '    %s' % glyph
         print '\n'
