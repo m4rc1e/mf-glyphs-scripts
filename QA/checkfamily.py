@@ -45,7 +45,7 @@ class GlyphsUI(object):
         self._checkbox('check_family_name', "Check font name has ASCII chars only")
         self._checkbox('check_names_length', "Check names are under 31 chars")
         self._checkbox('check_absolute_panose', "Check Panose is not assigned for all weights")
-        
+
         # Vertical Metrics
         self._heading('Vertical Metrics:')
         self._checkbox('metrics_fam_vals', "Instances/Masters have same values")
@@ -70,7 +70,7 @@ class GlyphsUI(object):
         # Resize window to fit all tests
         self.w.setPosSize((100.0, 100.0, 350.0, self.leading + 75))
         self.w.open()
-    
+
     def _heading(self, title):
         self.leading += 20
         setattr(self.w, 'text%s' % self.head_count, vanilla.TextBox((14, self.leading, 300, 14), title, sizeStyle='small'))
@@ -78,11 +78,11 @@ class GlyphsUI(object):
         self.head_count += 1
         setattr(self.w, 'rule%s' % self.head_count, vanilla.HorizontalLine((14, self.leading, 300, 14)))
         self.leading += 12
-    
+
     def _checkbox(self, attr,  title, value=True):
         setattr(self.w, attr, vanilla.CheckBox((14, self.leading, 300, 20), title, value=value))
         self.leading += 20
-        
+
     def buttonCallback(self, sender):
         main(**self.w.__dict__)
 
