@@ -57,6 +57,7 @@ class GlyphsUI(object):
         self._checkbox('glyphs_missing_conts_or_comps', "Glyphs missing contours")
         self._checkbox('glyphs_duplicate_components', "Glyphs with duplicate components")
         self._checkbox('glyphs_00_glyphs', "Glyphs with .00x suffix")
+        self._checkbox('glyphs_compatibility', "Instance Compatibility")
         self._checkbox('glyphs_missing_components', "Glyphs missing GlyphData.xml components", value=False)
 
         # Check OT Features
@@ -129,6 +130,9 @@ def main(**kwargs):
 
     if 'glyphs_00_glyphs' in kwargs and kwargs['glyphs_00_glyphs'].get() ==1:
         glyphs.find_00_glyphs(font.glyphs)
+
+    if 'glyphs_compatibility' in kwargs and kwargs['glyphs_compatibility'].get() == 1:
+        glyphs.instance_compatibility(font)
 
     if 'glyphs_missing_components' in kwargs and kwargs['glyphs_missing_components'].get() == 1:
         glyphs.find_missing_components(font.glyphs, [i.id for i in font.masters])

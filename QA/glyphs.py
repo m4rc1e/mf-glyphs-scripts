@@ -1,5 +1,6 @@
 from collections import Counter
 import unicodedata as uni
+from copy import copy
 
 IGNORE_GLYPHS_OUTLINE = [
     'uni0000',
@@ -130,3 +131,85 @@ def find_missing_components(glyphs, layers):
         print '\n'
     else:
         print "PASS: Fonts have the same components as GlyphData.xml\n"
+
+
+def _remove_overlaps(glyph):
+    '''remove path overlaps for all layers'''
+    for layer in glyph.layers:
+        layer.removeOverlap()
+    return glyph
+
+
+def font_glyphs_contours(font):
+    '''Return nested dictionary:
+        layer[glyph] = contour_count
+        Reg:
+            A: 2
+            B: 3
+        Bold:
+            A: 2
+            B: 3
+    '''
+    glyphs = {}
+
+    masters = font.masters
+    for master in masters:
+        if master.name not in glyphs:
+            glyphs[master.name] = {}
+        for glyph in font.glyphs:
+            glyph_cp = copy(glyph)
+            glyph_no_overlap = _remove_overlaps(glyph_cp)
+            glyph_contours = len(glyph_no_overlap.layers[master.id].paths)
+            glyphs[master.name][glyph.name] = glyph_contours
+    return glyphs
+
+
+def font_glyphs_compatible(glyph_paths_count):
+    '''Preflight master compatbility check'''
+    good_glyphs = {}
+    bad_glyphs = set()
+    for master1 in glyph_paths_count:
+        for master2 in glyph_paths_count:
+            glyphs1 = glyph_paths_count[master1]
+            glyphs2 = glyph_paths_count[master2]
+            shared_glyphs = set(glyphs1) & set(glyphs2)
+            for glyph in shared_glyphs:
+                if glyphs1[glyph] == glyphs2[glyph]:
+                    good_glyphs[glyph] = glyphs1[glyph]
+                else:
+                    bad_glyphs.add(glyph)
+    if bad_glyphs:
+        for glyph in bad_glyphs:
+            print 'WARNING: %s not consistent, check masters' % glyph
+        print '\n'
+    return good_glyphs
+
+
+def instance_compatibility(font):
+    '''Check if instances share the same path count as their masters.
+    This is useful to check if the deiresis have merged into a single
+    dot.'''
+    print '**Check glyph instances have same amount of paths**'
+    glyph_paths_count = font_glyphs_contours(font)
+    compatible_glyphs = font_glyphs_compatible(glyph_paths_count)
+
+    instances = font.instances
+
+    bad_glyphs = []
+    for instance in instances:
+        faux_font = instance.interpolatedFont
+        for glyph in compatible_glyphs:
+            faux_glyph = faux_font.glyphs[glyph].layers[0]
+            faux_glyph.removeOverlap()
+            if len(faux_glyph.paths) != compatible_glyphs[glyph]:
+                print 'WARNING: %s, %s %s Instance has %s, whilst masters have %s' % (
+                    glyph,
+                    instance.width,
+                    instance.name,
+                    len(faux_glyph.paths),
+                    compatible_glyphs[glyph]
+                )
+                bad_glyphs.append(glyph)
+    print '\n'
+    if not bad_glyphs:
+        print 'PASS: Instances and Masters share same contour count\n'
