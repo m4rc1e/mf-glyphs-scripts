@@ -1,5 +1,6 @@
 import vanilla
 
+
 class GlyphsUI(object):
     '''Dialog for enabling/disabling checks'''
     def __init__(self, title):
