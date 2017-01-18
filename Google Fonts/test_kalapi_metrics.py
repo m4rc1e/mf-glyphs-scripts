@@ -21,7 +21,7 @@ hhea linegap: == OS/2 sTypoLineGap
 
 import os
 import operator
-
+import math
 
 GLYPHS_VERT_KEYS = [
     # Glyphsapp custom parameter fields for instance vertical metrics
@@ -68,7 +68,7 @@ def shortest_tallest_glyphs(font, *args):
             if glyph_ymax > highest:
                 highest = glyph_ymax
 
-    return lowest, highest
+    return math.ceil(lowest), math.ceil(highest)
 
 
 def ascender_descender(font):

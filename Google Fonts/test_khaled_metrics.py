@@ -22,6 +22,7 @@ If 125 percent UPM give the desired line spacing then yes, and yes 0 line gap.
 
 import os
 import operator
+import math
 
 
 GLYPHS_VERT_KEYS = [
@@ -68,7 +69,7 @@ def shortest_tallest_glyphs(font, *args):
             if glyph_ymax > highest:
                 highest = glyph_ymax
 
-    return lowest, highest
+    return math.ceil(lowest), math.ceil(highest)
 
 
 def ascender_descender(font):
