@@ -199,17 +199,20 @@ def instance_compatibility(font):
     for instance in instances:
         faux_font = instance.interpolatedFont
         for glyph in compatible_glyphs:
-            faux_glyph = faux_font.glyphs[glyph].layers[0]
-            faux_glyph.removeOverlap()
-            if len(faux_glyph.paths) != compatible_glyphs[glyph]:
-                print 'WARNING: %s, %s %s Instance has %s, whilst masters have %s' % (
-                    glyph,
-                    instance.width,
-                    instance.name,
-                    len(faux_glyph.paths),
-                    compatible_glyphs[glyph]
-                )
-                bad_glyphs.append(glyph)
+            try:
+                faux_glyph = faux_font.glyphs[glyph].layers[0]
+                faux_glyph.removeOverlap()
+                if len(faux_glyph.paths) != compatible_glyphs[glyph]:
+                    print 'WARNING: %s, %s %s Instance has %s, whilst masters have %s' % (
+                        glyph,
+                        instance.width,
+                        instance.name,
+                        len(faux_glyph.paths),
+                        compatible_glyphs[glyph]
+                    )
+                    bad_glyphs.append(glyph)
+            except:
+                all
     print '\n'
     if not bad_glyphs:
         print 'PASS: Instances and Masters share same contour count\n'
