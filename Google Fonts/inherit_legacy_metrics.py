@@ -3,6 +3,7 @@
 Replace Master vertical metrics with values from fonts hosted on
 fonts.google.com
 """
+from wrappers import GlyphsUI
 import vanilla
 import urllib
 from fontTools.ttLib import TTFont
@@ -17,7 +18,7 @@ from test_kalapi_metrics import shortest_tallest_glyphs
 script_path = os.path.abspath('..')
 if script_path not in sys.path:
     sys.path.append(script_path)
-from wrappers import GlyphsUI
+
 
 API_URL_PREFIX = 'https://fonts.google.com/download?family='
 
@@ -267,6 +268,8 @@ def main(ui_fonts, **kwargs):
                 if kwargs['fix_metrics'].get() == 1 and \
                    local_master_metrics[key] != remote_metrics[style][key] and \
                    kwargs['assign'].get() == 1:
+                    ps_name = remote_fonts[sel_font]['name'].getName(6, 1, 0, 0)
+                    style = font_style(str(ps_name))
                     print 'FIXING: %s %s to %s' % (master_name, key, remote_metrics[style][key])
                     local_master_metrics[key] = remote_metrics[style][key]
 

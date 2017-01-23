@@ -1,3 +1,5 @@
+import math
+
 VERT_KEYS = [
     'typoAscender',
     'typoDescender',
@@ -38,4 +40,4 @@ def shortest_tallest_glyphs(font, *args):
             if glyph_ymax > highest:
                 highest = glyph_ymax
 
-    return math.ceil(lowest), math.ceil(highest)
+    return int(math.ceil(lowest)), int(math.ceil(highest))
