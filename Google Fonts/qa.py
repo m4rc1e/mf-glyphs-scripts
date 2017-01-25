@@ -6,7 +6,7 @@ from fontTools.ttLib import TTFont
 from StringIO import StringIO
 from zipfile import ZipFile
 import re
-from vertmetrics import VERT_KEYS, shortest_tallest_glyphs
+from vertmetrics import VERT_KEYS, shortest_tallest_glyphs, VERT_TYPO_KEYS
 from testfuncs import (
     compare,
     consistent,
@@ -31,6 +31,12 @@ FONT_ATTRIBS = [
     'versionMinor',
     'date',
 ]
+
+WEIGHT_MAP = {
+    'Regular': 400,
+    'Medium': 500,
+    'Bold': 700,
+}
 
 LICENSE = '%s%s%s' % (
     'This Font Software is licensed under the SIL Open Font License, ',
@@ -111,29 +117,40 @@ def flatten(a, op='>'):
     return val
 
 
-def ttfs_2_glyph(ttfs):
+class TTF2Glyph(object):
     """Convert ttfs into in memory .glyph file"""
-    font = GSFont()
-    versions = [f['head'].fontRevision for f in ttfs]
-    version = flatten(versions, '>')
-    font.versionMajor, font.versionMinor = map(int, str(version).split('.'))
+    def __init__(self, ttfs, weights):
+        self.ttfs = ttfs
+        self.weights = weights
+        versions = [f['head'].fontRevision for f in ttfs]
+        self.version = flatten(versions, '>')
+        self.versionMajor, self.versionMinor = (
+            map(int, str(self.version).split('.'))
+        )
+        self.instances = []
+        self.masters = []
 
-    for ttf in ttfs:
-        instance = GSInstance()
-        instance.name = str(ttf['name'].getName(2, 1, 0, 0))
+        # Create Instances
+        for ttf in self.ttfs:
+            instance = GSInstance()
+            instance.name = str(ttf['name'].getName(2, 1, 0, 0))
 
-        instance.customParameters['winAscent'] = ttf['OS/2'].usWinAscent
-        instance.customParameters['winDescent'] = ttf['OS/2'].usWinDescent
-        instance.customParameters['typoAscender'] = ttf['OS/2'].sTypoAscender
-        instance.customParameters['typoDescender'] = ttf['OS/2'].sTypoDescender
-        instance.customParameters['typoLineGap'] = ttf['OS/2'].sTypoLineGap
-        # hhea table
-        instance.customParameters['hheaAscender'] = ttf['hhea'].ascent
-        instance.customParameters['hheaDescender'] = ttf['hhea'].descent
-        instance.customParameters['hheaLineGap'] = ttf['hhea'].lineGap
+            # Create Masters
+            if WEIGHT_MAP[instance.name] in self.weights:
+                master = GSFontMaster()
+                master.weightValue = ttf['OS/2'].usWeightClass
+                master.customParameters['winAscent'] = ttf['OS/2'].usWinAscent
+                master.customParameters['winDescent'] = ttf['OS/2'].usWinDescent
+                master.customParameters['typoAscender'] = ttf['OS/2'].sTypoAscender
+                master.customParameters['typoDescender'] = ttf['OS/2'].sTypoDescender
+                master.customParameters['typoLineGap'] = ttf['OS/2'].sTypoLineGap
+                # hhea table
+                master.customParameters['hheaAscender'] = ttf['hhea'].ascent
+                master.customParameters['hheaDescender'] = ttf['hhea'].descent
+                master.customParameters['hheaLineGap'] = ttf['hhea'].lineGap
+                self.masters.append(master)
 
-        font.instances.append(instance)
-    return font
+            self.instances.append(instance)
 
 
 def is_same(a):
@@ -171,7 +188,7 @@ def main(fonts):
     if remote_fonts:
         family_zip = ZipFile(StringIO(remote_fonts.read()))
         ttfs = fonts_from_zip(family_zip)
-        remote_glyphs = ttfs_2_glyph(ttfs)
+        remote_glyphs = TTF2Glyph(ttfs, [400, 600, 700])
 
         logger.test('Version number has increased since previous release')
         remote_v_number = float('%s.%s' % (
@@ -192,64 +209,44 @@ def main(fonts):
                  'Local version styles', local_styles)
 
         logger.test('Vertical metrics visually match hosted version')
-        remote_vmetrics = [m.customParameters for m
-                           in remote_glyphs.instances]
-        local_vmetrics = [m.customParameters for m
-                          in fonts[0].masters]
-        if is_same([i.values() for i in remote_vmetrics]) and \
-           is_same([i.values() for i in local_vmetrics]):
+
+        local_vmetrics = [m.customParameters for m in fonts[0].masters]
+        remote_vmetrics = [m.customParameters for m in remote_glyphs.masters]
+
+        local_vmetrics_same = is_same([i.values() for i in local_vmetrics])
+        remote_vmetrics_same = is_same([i.values() for i in remote_vmetrics])
+        if remote_vmetrics_same:
             logger.info('Remote metrics are family consistent')
+            remote_vmetrics = [remote_vmetrics[0] for i in
+                               range(len(local_vmetrics))]
+        if local_vmetrics_same:
             logger.info('Local metrics are family consistent')
+            local_vmetrics = [local_vmetrics[0] for i in
+                              range(len(local_vmetrics))]
 
-            local_vmetrics = local_vmetrics[0]
-            remote_vmetrics = remote_vmetrics[0]
+        if remote_vmetrics_same and local_vmetrics_same:
+            remote_vmetrics = [remote_vmetrics[0]]
+            local_vmetrics = [local_vmetrics[0]]
 
-            local_typo = (
-                local_vmetrics['typoAscender'] +
-                abs(local_vmetrics['typoDescender']) +
-                local_vmetrics['typoLineGap']
-            )
-            local_hhea = (
-                local_vmetrics['hheaAscender'] +
-                abs(local_vmetrics['hheaDescender']) +
-                local_vmetrics['hheaLineGap']
-            )
-            local_win = (
-                local_vmetrics['winAscent'] +
-                local_vmetrics['winDescent']
-            )
-            remote_typo = (
-                remote_vmetrics['typoAscender'] +
-                abs(remote_vmetrics['typoDescender']) +
-                remote_vmetrics['typoLineGap']
-            )
-            remote_hhea = (
-                remote_vmetrics['hheaAscender'] +
-                abs(remote_vmetrics['hheaDescender']) +
-                remote_vmetrics['hheaLineGap']
-            )
-            remote_win = (
-                remote_vmetrics['winAscent'] +
-                remote_vmetrics['winDescent']
-            )
+        if fonts[0].customParameters['Use Typo Metrics']:
+            logger.info('Use Typo Metrics enabled')
+            logger.info('Comparing local Typo against remote Win')
+            for r, l in zip(remote_vmetrics, local_vmetrics):
+                for l_key, r_key in VERT_TYPO_KEYS:
+                    if l_key == 'typoDescender':
+                        compare('Local %s' % l_key, abs(l[l_key]), '==',
+                                'Remote %s' % r_key, abs(r[r_key]))
+                    else:
+                        compare('Local %s' % l_key, l[l_key], '==',
+                                'Remote %s' % r_key, r[r_key])
+                compare('Local typoLineGap', l['typoLineGap'], '==',
+                        'Zero', 0)
 
-            if fonts[0].customParameters['Use Typo Metrics']:
-                logger.info('%s%s' % (
-                    'Local has Use_Typo_Enabled, ',
-                    'comparing local typo against remote win ascent'
-                    )
-                )
-                compare('Local Typo', local_typo, '==',
-                        'Remote winAscent', remote_win)
-                compare('Local hhea', local_hhea, '==',
-                        'Remote hhea', remote_hhea)
-            else:
-                compare('Local Typo', local_typo, '==',
-                        'Remote Typo', remote_win)
-                compare('Local hhea', local_hhea, '==',
-                        'Remote hhea', remote_hhea)
-                compare('Local win', local_win, '==',
-                        'Remote win', remote_win)
+        else:
+            for l, r in zip(remote_vmetrics, local_vmetrics):
+                for key in VERT_KEYS:
+                    compare('Local %s' % key, l[key], '==',
+                            'Remote %s' % key, r[key])
 
     logger.header1('Checking vertical metrics')
 
