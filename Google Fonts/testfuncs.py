@@ -1,6 +1,6 @@
 from utils import logger
 import operator
-
+import re
 
 OPERATORS = {
     '>=': operator.ge,
@@ -51,6 +51,26 @@ def leftover(set1_name, set1, set2_name, set2):
 def enabled(arg_name, arg):
     if arg:
         logger.passed('%s is enabled' % arg_name)
+        return True
     else:
         logger.failed('%s is disabled' % arg_name)
- 
+        return False
+
+
+def contains(segment, item):
+    if segment in item:
+        logger.passed('%s is in %s' % (segment, item))
+        return True
+    else:
+        logger.failed('%s not in %s' % (segment, item))
+        return False
+
+
+def regex_contains(string_name, pattern, string):
+    match = re.match(pattern, string)
+    if match:
+        logger.passed("%s matches %s" % (string_name, pattern))
+        return True
+    else:
+        logger.failed("%s does not match %s" % (string_name, pattern))
+        return False

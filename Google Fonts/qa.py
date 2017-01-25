@@ -12,6 +12,8 @@ from testfuncs import (
     consistent,
     leftover,
     enabled,
+    contains,
+    regex_contains,
 )
 
 API_URL_PREFIX = 'https://fonts.google.com/download?family='
@@ -29,6 +31,14 @@ FONT_ATTRIBS = [
     'versionMinor',
     'date',
 ]
+
+LICENSE = '%s%s%s' % (
+    'This Font Software is licensed under the SIL Open Font License, ',
+    'Version 1.1. This license is available with a FAQ at: ',
+    'http://scripts.sil.org/OFL'
+)
+
+LICENSE_URL = 'http://scripts.sil.org/OFL'
 
 
 def font_family_url(family_name):
@@ -224,8 +234,11 @@ def main(fonts):
             )
 
             if fonts[0].customParameters['Use Typo Metrics']:
-                logger.info('Local has Use_Typo_Enabled, ' +
-                    'comparing local typo against remote win ascent')
+                logger.info('%s%s' % (
+                    'Local has Use_Typo_Enabled, ',
+                    'comparing local typo against remote win ascent'
+                    )
+                )
                 compare('Local Typo', local_typo, '==',
                         'Remote winAscent', remote_win)
                 compare('Local hhea', local_hhea, '==',
@@ -247,18 +260,49 @@ def main(fonts):
     enabled('Use Typo Metrics', typo_metrics)
 
     logger.test('Win Ascent and Win Descent are bbox')
-    ymin, ymax = shortest_tallest_glyphs(fonts[0])
     if is_same([i.values() for i in vmetrics]):
+        ymin, ymax = shortest_tallest_glyphs(fonts[0])
         logger.info('Vert metrics are family consistent')
         win_ascent = vmetrics[0]['winAscent']
         win_descent = vmetrics[0]['winDescent']
         compare('winDescent', win_descent, '==', 'yMin', abs(ymin))
         compare('winAscent', win_ascent, '==', 'yMax', ymax)
 
-    logger.header1("Metadata is correct")
+    if not remote_fonts:
+        logger.test('Vert metrics are 120-125% of upm')
+        # add test
 
-    logger.test("Copyright string is correct")
+    logger.header1("Copyright string")
+
     copyright = fonts[0].copyright
+    logger.test("Copyright attribute matches pattern")
+    logger.info("String must match following format:\n%s%s" % (
+        "Copyright <yyyy> The <font-name> Project Authors ",
+        "(https://github.com/author/font-project-name)"
+        )
+    )
+    copyright_pattern = r'%s%s' % (
+        r"Copyright [0-9]{4} The .* Project Authors",
+        r" \(https\:\/\/github.com\/.*\/.*\)"
+    )
+    regex_contains('Copyright', copyright_pattern, copyright)
+
+    logger.test("Copyright attribute contains github link")
+    contains("https://github.com/", copyright)
+
+    logger.test('Copyright attribute contains "Project Authors"')
+    contains("Project Authors", copyright)
+
+    logger.header1('Family metadata constants')
+
+    font_params = fonts[0].customParameters
+    logger.test('license matches constant')
+    compare('Font license', font_params['license'], '==',
+            'Constant license', LICENSE)
+
+    logger.test('licenseURL matches constant')
+    compare('Font licenseURL', font_params['licenseURL'], '==',
+            'Constant licenseURL', LICENSE_URL)
 
     print logger
     logger.clear()

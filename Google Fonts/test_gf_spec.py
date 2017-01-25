@@ -21,7 +21,7 @@ except NameError:
 PROJECT_FILES = {
     'licence': 'OFL.txt',
     'contributors': 'CONTRIBUTORS.txt',
-    'trademark': 'TRADEMARKS.md',
+    'trademark': 'TRADEMARKS.txt',
     'readme': 'README.md',
     'gitignore': '.gitignore'
     }
