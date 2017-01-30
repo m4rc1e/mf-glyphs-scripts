@@ -118,7 +118,10 @@ def flatten(a, op='>'):
 
 
 class TTF2Glyph(object):
-    """Convert ttfs into in memory .glyph file"""
+    """Convert ttfs into in memory .glyph file.
+
+    This shouldn't be a class but comparing the same object types is
+    far easier."""
     def __init__(self, ttfs, weights):
         self.ttfs = ttfs
         self.weights = weights
