@@ -14,7 +14,9 @@ from testfuncs import (
     enabled,
     contains,
     regex_contains,
+    exists,
 )
+
 
 API_URL_PREFIX = 'https://fonts.google.com/download?family='
 
@@ -45,6 +47,9 @@ LICENSE = '%s%s%s' % (
 )
 
 LICENSE_URL = 'http://scripts.sil.org/OFL'
+
+SOURCES_FOLDER = 'sources'
+FONTS_FOLDER = 'fonts'
 
 
 def font_family_url(family_name):
@@ -187,8 +192,8 @@ def main(fonts):
     else:
         logger.info("1 glyphs file only, skipping consistency")
 
-    logger.header1("Performing regression tests")
     if remote_fonts:
+        logger.header1("Performing regression tests")
         family_zip = ZipFile(StringIO(remote_fonts.read()))
         ttfs = fonts_from_zip(family_zip)
         remote_glyphs = TTF2Glyph(ttfs, [400, 600, 700])
@@ -304,6 +309,17 @@ def main(fonts):
     compare('Font licenseURL', font_params['licenseURL'], '==',
             'Constant licenseURL', LICENSE_URL)
 
+    logger.header1('Repository Structure')
+
+    logger.test('Compulsory folders exist')
+    abs_sources_folder = os.path.join(project_dir, SOURCES_FOLDER)
+    exists('sources folder', os.path.isdir(abs_sources_folder))
+
+    abs_fonts_folder = os.path.join(project_dir, FONTS_FOLDER)
+    exists('fonts folder', os.path.isdir(abs_fonts_folder))
+
+    logger.test('Compulsorty files exist')
+
     print logger
     logger.clear()
 
@@ -317,4 +333,11 @@ if __name__ == '__main__':
         logger.failed('Multiple families open!')
         logger.info('Test 1 family at a time')
     else:
+        try:
+            __glyphsfile__ = Glyphs.font.filepath
+            project_dir = os.path.abspath(
+                os.path.join(os.path.dirname(__glyphsfile__), '..')
+            )
+        except NameError:
+            project_dir = os.getcwd()
         main(local_fonts)

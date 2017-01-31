@@ -15,10 +15,9 @@ def compare(arg1_name, arg1_val, op, arg2_name, arg2_val):
         logger.passed('%s %s is %s to %s %s' %
             (arg1_name, arg1_val, op, arg2_name, arg2_val))
         return True
-    else:
-        logger.failed('%s %s is not %s to %s %s' %
-            (arg1_name, arg1_val, op, arg2_name, arg2_val))
-        return False
+    logger.failed('%s %s is not %s to %s %s' %
+        (arg1_name, arg1_val, op, arg2_name, arg2_val))
+    return False
 
 
 def consistent(arg_name, a):
@@ -39,31 +38,28 @@ def leftover(set1_name, set1, set2_name, set2):
             set1_name,
         ))
         return True
-    else:
-        logger.failed("%s missing %s, compared to %s" % (
-            set2_name,
-            ', '.join(sub),
-            set1_name,
-        ))
-        return False
+    logger.failed("%s missing %s, compared to %s" % (
+        set2_name,
+        ', '.join(sub),
+        set1_name,
+    ))
+    return False
 
 
 def enabled(arg_name, arg):
     if arg:
         logger.passed('%s is enabled' % arg_name)
         return True
-    else:
-        logger.failed('%s is disabled' % arg_name)
-        return False
+    logger.failed('%s is disabled' % arg_name)
+    return False
 
 
 def contains(segment, item):
     if segment in item:
         logger.passed('%s is in %s' % (segment, item))
         return True
-    else:
-        logger.failed('%s not in %s' % (segment, item))
-        return False
+    logger.failed('%s not in %s' % (segment, item))
+    return False
 
 
 def regex_contains(string_name, pattern, string):
@@ -71,6 +67,13 @@ def regex_contains(string_name, pattern, string):
     if match:
         logger.passed("%s matches %s" % (string_name, pattern))
         return True
-    else:
-        logger.failed("%s does not match %s" % (string_name, pattern))
-        return False
+    logger.failed("%s does not match %s" % (string_name, pattern))
+    return False
+
+
+def exists(item_name, item):
+    if item:
+        logger.passed('%s exists' % item_name)
+        return True
+    logger.failed('%s does not exist' % item_name)
+    return False
