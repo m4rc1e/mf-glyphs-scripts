@@ -4,6 +4,7 @@ Fix/add requirements from ProjectChecklist.md
 '''
 
 from datetime import datetime
+import re
 
 BAD_PARAMETERS = [
     'openTypeNameLicense',
@@ -14,6 +15,12 @@ BAD_PARAMETERS = [
     'openTypeNameDescription',
     'Family Alignment Zones',
 ]
+
+
+def _convert_camelcase(name, seperator=' '):
+    """ExtraCondensed -> Extra Condensed"""
+    return re.sub('(?!^)([A-Z]|[0-9]+)', r'%s\1' % seperator, name)
+
 
 def main():
     # Add README file if it does not exist
@@ -100,12 +107,12 @@ def main():
 
         # Seperate non Reg/Medium weights into their own family
         if instance.width != 'Medium (normal)':
-            family_suffix = instance.width
-            if family_suffix == 'Semi Expanded':
-                family_suffix = 'SemiExpanded'
-            condensed_family_name = '%s %s' % (font.familyName, family_suffix)
-            instance.customParameters['familyName'] = condensed_family_name
-
+            if instance.width == 'Semi Expanded':
+                family_suffix = instance.width
+            else:
+                family_suffix = _convert_camelcase(instance.width)
+            sub_family_name = '%s %s' % (font.familyName, family_suffix)
+            instance.customParameters['familyName'] = sub_family_name
 
         if instance.weight == 'Bold':
             instance.isBold = True
