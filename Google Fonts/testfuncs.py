@@ -26,7 +26,7 @@ def consistent(arg_name, a):
             arg_name, a[0]))
         return True
     logger.failed("%s is inconsistent, %s" % (
-        arg_name, ', '.join(a)))
+        arg_name, ', '.join(map(str, a))))
     return False
 
 

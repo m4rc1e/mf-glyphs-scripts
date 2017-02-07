@@ -35,6 +35,7 @@ FONT_ATTRIBS = [
 ]
 
 WEIGHT_MAP = {
+    'Light': 300,
     'Regular': 400,
     'Medium': 500,
     'Bold': 700,
@@ -135,28 +136,42 @@ class TTF2Glyph(object):
         self.versionMajor, self.versionMinor = (
             map(int, str(self.version).split('.'))
         )
+        self.customParameters = {}
         self.instances = []
         self.masters = []
+        self.glyphs = {}
 
-        # Create Instances
+        if 192 in [int(f['OS/2'].fsSelection) for f in ttfs]:
+            self.customParameters['Use Typo Metrics'] = True
+        else:
+            self.customParameters['Use Typo Metrics'] = False
+
         for ttf in self.ttfs:
+            for glyph in ttf['glyf'].keys():
+                nice_glyph_name = Glyphs.niceGlyphName(glyph)
+                # no point attempting to convert TT to PS
+                self.glyphs[nice_glyph_name] = None
+
             instance = GSInstance()
             instance.name = str(ttf['name'].getName(2, 1, 0, 0))
 
             # Create Masters
-            if WEIGHT_MAP[instance.name] in self.weights:
-                master = GSFontMaster()
-                master.weightValue = ttf['OS/2'].usWeightClass
-                master.customParameters['winAscent'] = ttf['OS/2'].usWinAscent
-                master.customParameters['winDescent'] = ttf['OS/2'].usWinDescent
-                master.customParameters['typoAscender'] = ttf['OS/2'].sTypoAscender
-                master.customParameters['typoDescender'] = ttf['OS/2'].sTypoDescender
-                master.customParameters['typoLineGap'] = ttf['OS/2'].sTypoLineGap
-                # hhea table
-                master.customParameters['hheaAscender'] = ttf['hhea'].ascent
-                master.customParameters['hheaDescender'] = ttf['hhea'].descent
-                master.customParameters['hheaLineGap'] = ttf['hhea'].lineGap
-                self.masters.append(master)
+            try:
+                if WEIGHT_MAP[instance.name] in self.weights:
+                    master = GSFontMaster()
+                    master.weightValue = ttf['OS/2'].usWeightClass
+                    master.customParameters['winAscent'] = ttf['OS/2'].usWinAscent
+                    master.customParameters['winDescent'] = ttf['OS/2'].usWinDescent
+                    master.customParameters['typoAscender'] = ttf['OS/2'].sTypoAscender
+                    master.customParameters['typoDescender'] = ttf['OS/2'].sTypoDescender
+                    master.customParameters['typoLineGap'] = ttf['OS/2'].sTypoLineGap
+                    # hhea table
+                    master.customParameters['hheaAscender'] = ttf['hhea'].ascent
+                    master.customParameters['hheaDescender'] = ttf['hhea'].descent
+                    master.customParameters['hheaLineGap'] = ttf['hhea'].lineGap
+                    self.masters.append(master)
+            except KeyError:
+                all
 
             self.instances.append(instance)
 
@@ -196,7 +211,8 @@ def main(fonts):
         logger.header1("Performing regression tests")
         family_zip = ZipFile(StringIO(remote_fonts.read()))
         ttfs = fonts_from_zip(family_zip)
-        remote_glyphs = TTF2Glyph(ttfs, [400, 600, 700])
+
+        remote_glyphs = TTF2Glyph(ttfs, [400, 600, 700]) # fix
 
         logger.test('Version number has increased since previous release')
         remote_v_number = float('%s.%s' % (
@@ -236,8 +252,9 @@ def main(fonts):
             remote_vmetrics = [remote_vmetrics[0]]
             local_vmetrics = [local_vmetrics[0]]
 
-        if fonts[0].customParameters['Use Typo Metrics']:
-            logger.info('Use Typo Metrics enabled')
+        if fonts[0].customParameters['Use Typo Metrics'] and not \
+                remote_glyphs.customParameters['Use Typo Metrics']:
+            logger.info('Use Typo Metrics enabled locally')
             logger.info('Comparing local Typo against remote Win')
             for r, l in zip(remote_vmetrics, local_vmetrics):
                 for l_key, r_key in VERT_TYPO_KEYS:
@@ -255,6 +272,14 @@ def main(fonts):
                 for key in VERT_KEYS:
                     compare('Local %s' % key, l[key], '==',
                             'Remote %s' % key, r[key])
+
+        logger.test('Missing glyphs')
+        remote_glyphset = set(remote_glyphs.glyphs.keys())
+        local_glyphset = set(fonts[0].glyphs.keys())
+        logger.info('Old version has %s glyphs' % len(remote_glyphset))
+        logger.info('New version has %s glyphs' % len(local_glyphset))
+        leftover('Old version', remote_glyphset,
+                 'New version', local_glyphset)
 
     logger.header1('Checking vertical metrics')
 
@@ -318,7 +343,7 @@ def main(fonts):
     abs_fonts_folder = os.path.join(project_dir, FONTS_FOLDER)
     exists('fonts folder', os.path.isdir(abs_fonts_folder))
 
-    logger.test('Compulsorty files exist')
+    logger.test('Compulsory files exist')
 
     print logger
     logger.clear()
