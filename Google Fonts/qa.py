@@ -154,6 +154,7 @@ class TTF2Glyph(object):
 
             instance = GSInstance()
             instance.name = str(ttf['name'].getName(2, 1, 0, 0))
+            self.instances.append(instance)
 
             # Create Masters
             try:
@@ -173,7 +174,6 @@ class TTF2Glyph(object):
             except KeyError:
                 all
 
-            self.instances.append(instance)
 
 
 def is_same(a):

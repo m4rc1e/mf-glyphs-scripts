@@ -1,16 +1,16 @@
 
 class MDLogger(object):
-    """Generate reports formatted in structured text"""
+    """Generate reports formatted in MD text"""
     def __init__(self):
         self.rows = []
         self._failed = 0
         self._passed = 0
 
     def header1(self, text):
-        self.rows.append('# %s' % text)
+        self.rows.append('\n# %s' % text)
 
     def header2(self, text):
-        self.rows.append('## %s' % text)
+        self.rows.append('\n## %s' % text)
 
     def test(self, text):
         self.rows.append('\n### Test: %s' % text)
@@ -38,7 +38,7 @@ class MDLogger(object):
         self.rows = []
 
     def __str__(self):
-        return '\r'.join(self.rows)
+        return '\n'.join(self.rows)
 
 
 logger = MDLogger()
