@@ -176,6 +176,23 @@ class TTF2Glyph(object):
                 all
 
 
+def merge_glyph_files(fonts):
+    """Combine multiple .glyphs files into one pseduo glyphs file.
+    Useful for unifying Italic and Roman weights into one family"""
+    new_font = GSFont()
+    for font in fonts:
+        for master in font.masters:
+            new_font.masters.append(master)
+        for instance in font.instances:
+            new_font.instances.append(instance)
+        for glyph in font.glyphs:
+            if glyph.name not in new_font.glyphs.keys():
+                glyph_copy = GSGlyph(glyph.name)
+                glyph_copy.unicode = glyph.unicode
+                new_font.glyphs.append(glyph_copy)
+    return new_font
+
+
 def is_same(a):
     if len(set(a)) == 1:
         return True
