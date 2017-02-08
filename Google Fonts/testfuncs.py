@@ -38,10 +38,10 @@ def leftover(set1_name, set1, set2_name, set2):
             set1_name,
         ))
         return True
-    logger.failed("%s missing %s, compared to %s" % (
+    logger.failed("%s when compare to %s, is missing:\n%s" % (
         set2_name,
-        ', '.join(sub),
         set1_name,
+        '\n'.join(sub),
     ))
     return False
 

@@ -1,4 +1,5 @@
 #MenuTitle: QA
+from os.path import basename
 from urllib import urlopen
 from utils import logger
 from fontTools.ttLib import TTFont
@@ -175,7 +176,6 @@ class TTF2Glyph(object):
                 all
 
 
-
 def is_same(a):
     if len(set(a)) == 1:
         return True
@@ -198,6 +198,15 @@ def main(fonts):
         for attrib in FONT_ATTRIBS:
             fonts_attrib_values = fonts_attrib(fonts, attrib)
             consistent(attrib, fonts_attrib_values)
+
+        logger.test('Glyph set consistency')
+        for font1 in fonts:
+            for font2 in fonts:
+                if font1 != font2:
+                    font1_glyphset = set(font1.glyphs.keys())
+                    font2_glyphset = set(font2.glyphs.keys())
+                    leftover(basename(font1.filepath), font1_glyphset,
+                             basename(font2.filepath), font2_glyphset)
 
         if not remote_fonts:
             logger.test("Vertical metrics are consistent")
