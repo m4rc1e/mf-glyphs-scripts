@@ -293,6 +293,19 @@ def main(fonts):
                 compare('Local typoLineGap', l['typoLineGap'], '==',
                         'Zero', 0)
 
+        elif fonts[0].customParameters['Use Typo Metrics'] and \
+            remote_glyphs.customParameters['Use Typo Metrics']:
+                logger.info('Use Typo Metrics enabled locally')
+                logger.info('Use Typo Metrics enabled remotely')
+                # We don't need to check win valuesm, typo metrics is enabled
+                ignore_fields = ['winAscent', 'winDescent']
+                for l, r in zip(remote_vmetrics, local_vmetrics):
+                    for key in VERT_KEYS:
+                        if key not in ignore_fields:
+                            compare('Local %s' % key, l[key], '==',
+                                    'Remote %s' % key, r[key])
+
+
         else:
             for l, r in zip(remote_vmetrics, local_vmetrics):
                 for key in VERT_KEYS:
