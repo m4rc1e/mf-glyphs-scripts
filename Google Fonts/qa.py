@@ -397,8 +397,8 @@ if __name__ == '__main__':
     family_names = [f.familyName for f in local_fonts]
 
     if len(set(family_names)) != 1:
-        logger.failed('Multiple families open!')
-        logger.info('Test 1 family at a time')
+        print 'Multiple families open!'
+        print 'Test 1 family at a time'
     else:
         try:
             __glyphsfile__ = Glyphs.font.filepath
