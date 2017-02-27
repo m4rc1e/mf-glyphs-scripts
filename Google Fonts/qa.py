@@ -178,7 +178,7 @@ class TTF2Glyph(object):
 
 def merge_glyph_files(fonts):
     """Combine multiple .glyphs files into one pseduo glyphs file.
-    Useful for unifying Italic and Roman weights into one family"""
+    Useful for combining Roman and Italic weights into one family"""
     new_font = GSFont()
     for font in fonts:
         for master in font.masters:
@@ -383,9 +383,21 @@ def main(fonts):
     exists('fonts folder', os.path.isdir(abs_fonts_folder))
 
     logger.test('Compulsory files exist')
-    exists('OFL.txt', os.listdir(project_dir))
+    ofl_exists = exists('OFL.txt', os.listdir(project_dir))
     exists('CONTRIBUTORS.txt', os.listdir(project_dir))
     exists('AUTHORS.txt', os.listdir(project_dir))
+
+    logger.test('First line of OFL matches copyright')
+    if ofl_exists:
+        with open(os.path.join(project_dir, 'OFL.txt')) as ofl:
+            ofl_copyright = ofl.readlines()[0]
+            font_copyright = fonts[0].copyright
+            compare('OFL Copyright', ofl_copyright, '==',
+                    'Font Copyright', font_copyright
+            )
+    else:
+        print 'OFL does not exist'
+
 
     print logger
     logger.clear()
