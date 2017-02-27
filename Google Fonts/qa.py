@@ -54,6 +54,11 @@ SOURCES_FOLDER = 'sources'
 FONTS_FOLDER = 'fonts'
 
 
+STYLE_NAMES = [
+    ''
+]
+
+
 def font_family_url(family_name):
     '''Create the url to download a font family'''
     family_name = family_name.replace(' ', '%20')
@@ -116,14 +121,6 @@ def font_masters_attrib(fonts, key):
     return attribs
 
 
-def flatten(a, op='>'):
-    val = None
-    for i in a:
-        if op == '>' and i > val:
-            val = i
-    return val
-
-
 class TTF2Glyph(object):
     """Convert ttfs into in memory .glyph file.
 
@@ -133,7 +130,7 @@ class TTF2Glyph(object):
         self.ttfs = ttfs
         self.weights = weights
         versions = [f['head'].fontRevision for f in ttfs]
-        self.version = flatten(versions, '>')
+        self.version = max(versions)
         self.versionMajor, self.versionMinor = (
             map(int, str(self.version).split('.'))
         )
