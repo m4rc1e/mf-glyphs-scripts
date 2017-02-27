@@ -383,6 +383,9 @@ def main(fonts):
     exists('fonts folder', os.path.isdir(abs_fonts_folder))
 
     logger.test('Compulsory files exist')
+    exists('OFL.txt', os.listdir(project_dir))
+    exists('CONTRIBUTORS.txt', os.listdir(project_dir))
+    exists('AUTHORS.txt', os.listdir(project_dir))
 
     print logger
     logger.clear()
