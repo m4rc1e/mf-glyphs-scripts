@@ -1,4 +1,5 @@
 #MenuTitle: QA
+import os
 from os.path import basename
 from urllib import urlopen
 from utils import logger
@@ -55,7 +56,42 @@ FONTS_FOLDER = 'fonts'
 
 
 STYLE_NAMES = [
-    ''
+    'Thin',
+    'ExtraLight',
+    'Light',
+    'Regular',
+    'Medium',
+    'SemiBold',
+    'Bold',
+    'ExtraBold',
+    'Black',
+    'Thin',
+    'ExtraLight',
+    'Light',
+    'Regular',
+    'Medium',
+    'SemiBold',
+    'Bold',
+    'ExtraBold',
+    'Black',
+    'Thin Italic',
+    'ExtraLight Italic',
+    'Light Italic',
+    'Regular Italic',
+    'Medium Italic',
+    'SemiBold Italic',
+    'Bold Italic',
+    'ExtraBold Italic',
+    'Black Italic',
+    'Thin Italic',
+    'ExtraLight Italic',
+    'Light Italic',
+    'Regular Italic',
+    'Medium Italic',
+    'SemiBold Italic',
+    'Bold Italic',
+    'ExtraBold Italic',
+    'Black Italic',
 ]
 
 
@@ -177,6 +213,11 @@ def merge_glyph_files(fonts):
     """Combine multiple .glyphs files into one pseduo glyphs file.
     Useful for combining Roman and Italic weights into one family"""
     new_font = GSFont()
+    new_font.versionMajor = max([f.versionMajor for f in fonts])
+    new_font.versionMinor = max([f.versionMinor for f in fonts])
+    if fonts[0].customParameters['Use Typo Metrics']:
+        new_font.customParameters['Use Typo Metrics'] = True
+
     for font in fonts:
         for master in font.masters:
             new_font.masters.append(master)
@@ -230,6 +271,9 @@ def main(fonts):
     else:
         logger.info("1 glyphs file only, skipping consistency")
 
+    # consolidate seperate glyph files into one file
+    local_font = merge_glyph_files(fonts)
+
     if remote_fonts:
         logger.header1("Performing regression tests")
         family_zip = ZipFile(StringIO(remote_fonts.read()))
@@ -243,21 +287,21 @@ def main(fonts):
             str(remote_glyphs.versionMinor).zfill(3)
         ))
         local_v_number = float('%s.%s' % (
-            fonts[0].versionMajor,
-            str(fonts[0].versionMinor).zfill(3)
+            local_font.versionMajor,
+            str(local_font.versionMinor).zfill(3)
         ))
         compare('Local Version', local_v_number, '>=',
                 'Remote Version', remote_v_number)
 
         logger.test('Family contains same styles as hosted version')
         remote_styles = set([i.name for i in remote_glyphs.instances])
-        local_styles = set([i.name for i in fonts[0].instances])
+        local_styles = set([i.name for i in local_font.instances])
         leftover('Remote version styles', remote_styles,
                  'Local version styles', local_styles)
 
         logger.test('Vertical metrics visually match hosted version')
 
-        local_vmetrics = [m.customParameters for m in fonts[0].masters]
+        local_vmetrics = [m.customParameters for m in local_font.masters]
         remote_vmetrics = [m.customParameters for m in remote_glyphs.masters]
 
         local_vmetrics_same = is_same([i.values() for i in local_vmetrics])
@@ -275,7 +319,8 @@ def main(fonts):
             remote_vmetrics = [remote_vmetrics[0]]
             local_vmetrics = [local_vmetrics[0]]
 
-        if fonts[0].customParameters['Use Typo Metrics'] and not \
+        # local has typo enabled but not remote
+        if local_font.customParameters['Use Typo Metrics'] and not \
                 remote_glyphs.customParameters['Use Typo Metrics']:
             logger.info('Use Typo Metrics enabled locally')
             logger.info('Comparing local Typo against remote Win')
@@ -290,11 +335,12 @@ def main(fonts):
                 compare('Local typoLineGap', l['typoLineGap'], '==',
                         'Zero', 0)
 
-        elif fonts[0].customParameters['Use Typo Metrics'] and \
+        # local and remote both have use typo metrics enabled
+        elif local_font.customParameters['Use Typo Metrics'] and \
             remote_glyphs.customParameters['Use Typo Metrics']:
                 logger.info('Use Typo Metrics enabled locally')
                 logger.info('Use Typo Metrics enabled remotely')
-                # We don't need to check win valuesm, typo metrics is enabled
+                # We don't need to check win values, typo metrics is enabled
                 ignore_fields = ['winAscent', 'winDescent']
                 for l, r in zip(remote_vmetrics, local_vmetrics):
                     for key in VERT_KEYS:
@@ -309,92 +355,101 @@ def main(fonts):
                     compare('Local %s' % key, l[key], '==',
                             'Remote %s' % key, r[key])
 
-        logger.test('Missing glyphs')
-        remote_glyphset = set(remote_glyphs.glyphs.keys())
-        local_glyphset = set(fonts[0].glyphs.keys())
-        logger.info('Old version has %s glyphs' % len(remote_glyphset))
-        logger.info('New version has %s glyphs' % len(local_glyphset))
-        leftover('Old version', remote_glyphset,
-                 'New version', local_glyphset)
+    #     logger.test('Missing glyphs')
+    #     remote_glyphset = set(remote_glyphs.glyphs.keys())
+    #     local_glyphset = set(fonts[0].glyphs.keys())
+    #     logger.info('Old version has %s glyphs' % len(remote_glyphset))
+    #     logger.info('New version has %s glyphs' % len(local_glyphset))
+    #     leftover('Old version', remote_glyphset,
+    #              'New version', local_glyphset)
 
-    logger.header1('Checking vertical metrics')
+    # logger.header1('Checking vertical metrics')
 
-    vmetrics = [m.customParameters for m in fonts[0].masters]
+    # vmetrics = [m.customParameters for m in fonts[0].masters]
 
-    logger.test('Use Typo Metrics is enabled')
-    typo_metrics = fonts[0].customParameters['Use Typo Metrics']
-    enabled('Use Typo Metrics', typo_metrics)
+    # logger.test('Use Typo Metrics is enabled')
+    # typo_metrics = fonts[0].customParameters['Use Typo Metrics']
+    # enabled('Use Typo Metrics', typo_metrics)
 
-    logger.test('Win Ascent and Win Descent are bbox')
-    if is_same([i.values() for i in vmetrics]):
-        ymin, ymax = shortest_tallest_glyphs(fonts[0])
-        logger.info('Vert metrics are family consistent')
-        win_ascent = vmetrics[0]['winAscent']
-        win_descent = vmetrics[0]['winDescent']
-        compare('winDescent', win_descent, '==', 'yMin', abs(ymin))
-        compare('winAscent', win_ascent, '==', 'yMax', ymax)
+    # logger.test('Win Ascent and Win Descent are bbox')
+    # if is_same([i.values() for i in vmetrics]):
+    #     ymin, ymax = shortest_tallest_glyphs(fonts[0])
+    #     logger.info('Vert metrics are family consistent')
+    #     win_ascent = vmetrics[0]['winAscent']
+    #     win_descent = vmetrics[0]['winDescent']
+    #     compare('winDescent', win_descent, '==', 'yMin', abs(ymin))
+    #     compare('winAscent', win_ascent, '==', 'yMax', ymax)
 
-    if not remote_fonts:
-        logger.test('Vert metrics are 120-125% of upm')
-        # add test
+    # if not remote_fonts:
+    #     logger.test('Vert metrics are 120-125% of upm')
+    #     # add test
 
-    logger.header1("Copyright string")
+    # logger.header1("Copyright string")
 
-    copyright = fonts[0].copyright
-    logger.test("Copyright attribute matches pattern")
-    logger.info("String must match following format:\n%s%s" % (
-        "Copyright <yyyy> The <font-name> Project Authors ",
-        "(https://github.com/author/font-project-name)"
-        )
-    )
-    copyright_pattern = r'%s%s' % (
-        r"Copyright [0-9]{4} The .* Project Authors",
-        r" \(https\:\/\/github.com\/.*\/.*\)"
-    )
-    regex_contains('Copyright', copyright_pattern, copyright)
+    # copyright = fonts[0].copyright
+    # logger.test("Copyright attribute matches pattern")
+    # logger.info("String must match following format:\n%s%s" % (
+    #     "Copyright <yyyy> The <font-name> Project Authors ",
+    #     "(https://github.com/author/font-project-name)"
+    #     )
+    # )
+    # copyright_pattern = r'%s%s' % (
+    #     r"Copyright [0-9]{4} The .* Project Authors",
+    #     r" \(https\:\/\/github.com\/.*\/.*\)"
+    # )
+    # regex_contains('Copyright', copyright_pattern, copyright)
 
-    logger.test("Copyright attribute contains github link")
-    contains("https://github.com/", copyright)
+    # logger.test("Copyright attribute contains github link")
+    # contains("https://github.com/", copyright)
 
-    logger.test('Copyright attribute contains "Project Authors"')
-    contains("Project Authors", copyright)
+    # logger.test('Copyright attribute contains "Project Authors"')
+    # contains("Project Authors", copyright)
 
-    logger.header1('Family metadata constants')
+    # logger.header1('Family metadata constants')
 
-    font_params = fonts[0].customParameters
-    logger.test('license matches constant')
-    compare('Font license', font_params['license'], '==',
-            'Constant license', LICENSE)
+    # font_params = fonts[0].customParameters
+    # logger.test('license matches constant')
+    # compare('Font license', font_params['license'], '==',
+    #         'Constant license', LICENSE)
 
-    logger.test('licenseURL matches constant')
-    compare('Font licenseURL', font_params['licenseURL'], '==',
-            'Constant licenseURL', LICENSE_URL)
+    # logger.test('licenseURL matches constant')
+    # compare('Font licenseURL', font_params['licenseURL'], '==',
+    #         'Constant licenseURL', LICENSE_URL)
 
-    logger.header1('Repository Structure')
+    # logger.test('Family has correct font names')
+    # instances = fonts[0].instances
+    # family_styles = set([i.name for i in instances])
+    # bad_styles = [n for n in family_styles if n not in STYLE_NAMES]
+    # if bad_styles:
+    #     for name in bad_styles:
+    #         logger.failed('%s is an illegal style name' % name)
+    # else:
+    #     logger.passed('Font style names are good')
 
-    logger.test('Compulsory folders exist')
-    abs_sources_folder = os.path.join(project_dir, SOURCES_FOLDER)
-    exists('sources folder', os.path.isdir(abs_sources_folder))
+    # logger.header1('Repository Structure')
 
-    abs_fonts_folder = os.path.join(project_dir, FONTS_FOLDER)
-    exists('fonts folder', os.path.isdir(abs_fonts_folder))
+    # logger.test('Compulsory folders exist')
+    # abs_sources_folder = os.path.join(project_dir, SOURCES_FOLDER)
+    # exists('sources folder', os.path.isdir(abs_sources_folder))
 
-    logger.test('Compulsory files exist')
-    ofl_exists = exists('OFL.txt', os.listdir(project_dir))
-    exists('CONTRIBUTORS.txt', os.listdir(project_dir))
-    exists('AUTHORS.txt', os.listdir(project_dir))
+    # abs_fonts_folder = os.path.join(project_dir, FONTS_FOLDER)
+    # exists('fonts folder', os.path.isdir(abs_fonts_folder))
 
-    logger.test('First line of OFL matches copyright')
-    if ofl_exists:
-        with open(os.path.join(project_dir, 'OFL.txt')) as ofl:
-            ofl_copyright = ofl.readlines()[0]
-            font_copyright = fonts[0].copyright
-            compare('OFL Copyright', ofl_copyright, '==',
-                    'Font Copyright', font_copyright
-            )
-    else:
-        print 'OFL does not exist'
+    # logger.test('Compulsory files exist')
+    # ofl_exists = exists('OFL.txt', os.listdir(project_dir))
+    # exists('CONTRIBUTORS.txt', os.listdir(project_dir))
+    # exists('AUTHORS.txt', os.listdir(project_dir))
 
+    # logger.test('First line of OFL matches copyright')
+    # if ofl_exists:
+    #     with open(os.path.join(project_dir, 'OFL.txt')) as ofl:
+    #         ofl_copyright = ofl.readlines()[0]
+    #         font_copyright = fonts[0].copyright
+    #         compare('OFL Copyright', ofl_copyright, '==',
+    #                 'Font Copyright', font_copyright
+    #                 )
+    # else:
+    #     print 'OFL does not exist'
 
     print logger
     logger.clear()
