@@ -1,27 +1,21 @@
 #MenuTitle: QA
+import unittest
+from unittest import TestProgram
 import os
-from os.path import basename
+import urllib
 from urllib import urlopen
-from utils import logger
 from fontTools.ttLib import TTFont
-
+import csv
 from StringIO import StringIO
 from zipfile import ZipFile
 import re
-from vertmetrics import VERT_KEYS, shortest_tallest_glyphs, VERT_TYPO_KEYS
-from testfuncs import (
-    compare,
-    consistent,
-    leftover,
-    enabled,
-    contains,
-    regex_contains,
-    exists,
-)
-
+from vertmetrics import VERT_KEYS, shortest_tallest_glyphs
+from datetime import datetime
+import shutil
+import tempfile
 
 API_URL_PREFIX = 'https://fonts.google.com/download?family='
-
+UPSTREAM_REPO_URLS = 'http://tinyurl.com/kd9lort'
 
 FONT_ATTRIBS = [
     'familyName',
@@ -35,13 +29,6 @@ FONT_ATTRIBS = [
     'versionMinor',
     'date',
 ]
-
-WEIGHT_MAP = {
-    'Light': 300,
-    'Regular': 400,
-    'Medium': 500,
-    'Bold': 700,
-}
 
 LICENSE = '%s%s%s' % (
     'This Font Software is licensed under the SIL Open Font License, ',
@@ -77,7 +64,7 @@ STYLE_NAMES = [
     'Thin Italic',
     'ExtraLight Italic',
     'Light Italic',
-    'Regular Italic',
+    'Italic',
     'Medium Italic',
     'SemiBold Italic',
     'Bold Italic',
@@ -95,15 +82,16 @@ STYLE_NAMES = [
 ]
 
 
-def font_family_url(family_name):
+def _font_family_url(family_name):
     '''Create the url to download a font family'''
-    family_name = family_name.replace(' ', '%20')
-    return '%s%s' % (API_URL_PREFIX, family_name)
+    family_name = str(family_name).replace(' ', '%20')
+    url = '%s%s' % (API_URL_PREFIX, family_name)
+    return url
 
 
 def url_200_response(family_name):
     """Return a zipfile containing a font family hosted on fonts.google.com"""
-    family_url = font_family_url(family_name)
+    family_url = _font_family_url(family_name)
     request = urlopen(family_url)
     if request.getcode() == 200:
         return request
@@ -120,355 +108,344 @@ def fonts_from_zip(zipfile):
     return ttfs
 
 
-def normalize_ttf_metric_vals(upm, fonts, target_upm):
-    """Convert a ttf's vertical metrics values to the equivilant values
-    for the target_upm.
-
-    e.g if font_upm=2048, asc=2100 & target upm1000:
-            upm=1000, asc=1025
-    """
-    metrics = {}
-    for font in fonts:
-        metrics[font] = {}
-        for vert_key in fonts[font]:
-            metrics[font][vert_key] = int((float(fonts[font][vert_key]) / upm) * DFLT_UPM)
-    return metrics
+def get_repos_doc():
+    """return Google Repo doc"""
+    handle = urllib.urlopen(UPSTREAM_REPO_URLS)
+    ss = StringIO(handle.read())
+    reader = csv.DictReader(ss)
+    return reader
 
 
-def is_italic(font):
-    for master in font.masters:
-        if 'Italic' in master.name:
-            return True
-    return False
+class TestGlyphsFiles(unittest.TestCase):
+    """Test for single .glyphs file families"""
+    @classmethod
+    def setUpClass(cls):
+        cls.fonts = Glyphs.fonts
+
+        cls._repos_doc = None
+        cls._remote_font = None
+        cls._ttfs = None
+        cls._temp_dir = tempfile.mkdtemp()
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls._temp_dir)
+
+    @property
+    def remote_font(self):
+        """If the family already exists on Google Fonts, download and
+        parse the ttfs into a GSFont object, else return None"""
+        if not self._remote_font:
+            remote_fonts = url_200_response(self.fonts[0].familyName)
+            if remote_fonts:
+                family_zip = ZipFile(StringIO(remote_fonts.read()))
+                return fonts_from_zip(family_zip)
+        return None
+
+    @property
+    def repos_doc(self):
+        if not self._repos_doc:
+            self._repos_doc = get_repos_doc()
+        return self._repos_doc
+
+    @property
+    def ttfs(self):
+        if not self._ttfs:
+            for font in self.fonts:
+                for instance in font.instances:
+                    instance.generate(Format='ttf', FontPath=self._temp_dir)
+        self._ttfs = [TTFont(os.path.join(self._temp_dir, f)) for f
+                      in os.listdir(self._temp_dir) if f.endswith('.ttf')]
+        return self._ttfs
 
 
-def fonts_attrib(fonts, attrib):
-    attribs = []
-    for font in fonts:
-        attribs.append(getattr(font, attrib))
-    return attribs
+class TestFontInfo(TestGlyphsFiles):
+
+    def test_copyright(self):
+        """Copyright string matches specification:
+
+        https://github.com/googlefonts/gf-docs/blob/master/ProjectChecklist.md#ofltxt"""
+        
+        repo_git_url = None
+        for font in self.fonts:
+            if not repo_git_url:
+                for row in self.repos_doc:
+                    if row['family'] == font.familyName:
+                        repo_git_url = str(row['upstream'])
+                        break
+
+            family_copyright_pattern = r'Copyright [0-9]{4} The %s Project Authors \(%s\)' % (
+                font.familyName, repo_git_url
+            )
+
+            copyright_search = re.search(family_copyright_pattern, font.copyright)
+            self.assertIsNotNone(
+                copyright_search,
+                'Copyright string is incorrect. It must contain or be:\n' + \
+                'Copyright %s The %s Project Authors (%s)' %(
+                    datetime.now().year,
+                    font.familyName,
+                    repo_git_url,
+                )
+            )
+
+    def test_style_names(self):
+        for font in self.fonts:
+            instances = font.instances
+            family_styles = set([i.name for i in instances])
+            for style in family_styles:
+                self.assertIn(style, STYLE_NAMES)
+
+    def test_license_url(self):
+        for font in self.fonts:
+            self.assertEqual(
+                font.customParameters['licenseURL'],
+                LICENSE_URL
+            )
+
+    def test_license(self):
+        for font in self.fonts:
+            self.assertEqual(
+                font.customParameters['license'],
+                LICENSE
+            )
 
 
-def font_masters_attrib(fonts, key):
-    attribs = []
-    for font in fonts:
-        for master in font.masters:
-            attribs.append(master.customParameters[key])
-    return attribs
+class TestMultipleGlyphsFileConsistency(unittest.TestCase):
+    """Families are often split into multiple .glyphs files.
+
+    Make sure the attributes share the same values"""
+    def setUp(self):
+        self.fonts = Glyphs.fonts
+
+    def test_files_share_same_attributes(self):
+        for font1 in self.fonts:
+            for font2 in self.fonts:
+                for attrib in FONT_ATTRIBS:
+                    self.assertEqual(getattr(font1, attrib),
+                                     getattr(font2, attrib))
+
+    def test_font_customParameters_are_equal(self):
+        for font1 in self.fonts:
+            for font2 in self.fonts:
+                for param in font1.customParameters:
+                    self.assertEqual(
+                        font1.customParameters[param.name],
+                        font2.customParameters[param.name],
+                        '%s is not consistent, %s --> %s' % (
+                            param.name,
+                            font1.customParameters[param.name],
+                            font2.customParameters[param.name],
+                        )
+                    )
 
 
-class TTF2Glyph(object):
-    """Convert ttfs into in memory .glyph file.
+class TestRegressions(TestGlyphsFiles):
+    """If the family already exists on fonts.google.com, download and compare
+    the data against the generated instances from the .glyphs file."""
 
-    This shouldn't be a class but comparing the same object types is
-    far easier."""
-    def __init__(self, ttfs, weights):
-        self.ttfs = ttfs
-        self.weights = weights
-        versions = [f['head'].fontRevision for f in ttfs]
-        self.version = max(versions)
-        self.versionMajor, self.versionMinor = (
-            map(int, str(self.version).split('.'))
-        )
-        self.customParameters = {}
-        self.instances = []
-        self.masters = []
-        self.glyphs = {}
+    def _get_font_styles(self, fonts):
+        """Get the Win style name for each font"""
+        styles = []
+        for font in fonts:
+            name = font['name'].getName(2, 3, 1, 1033)
+            enc = name.getEncoding()
+            styles.append(str(name).decode(enc))
+        return set(styles)
 
-        if 192 in [int(f['OS/2'].fsSelection) for f in ttfs]:
-            self.customParameters['Use Typo Metrics'] = True
+    def _hash_fonts(self, ttfs):
+        styles = self._get_font_styles(ttfs)
+        return dict(zip(styles, ttfs))
+
+
+    def test_missing_glyphs(self):
+        if self.remote_font:
+            local_fonts = self._hash_fonts(self.ttfs)
+            remote_fonts = self._hash_fonts(self.remote_font)
+            shared_styles = set(local_fonts.keys()) & set(remote_fonts.keys())
+
+            for style in shared_styles:
+                local_glyphs = set(local_fonts[style].getGlyphSet().keys())
+                remote_glyphs = set(remote_fonts[style].getGlyphSet().keys())
+
+                missing = remote_glyphs - local_glyphs
+                self.assertEqual(missing, set([]),
+                                'Font is missing [%s]' % ', '.join(missing))
+
+    def test_missing_instances(self):
+        """Check if the family is missing any instances.
+        We must ensure we have the same styles from the previous release."""
+        if self.remote_font:
+            local_styles = self._get_font_styles(self.ttfs)
+            remote_styles = self._get_font_styles(self.remote_font)
+            missing = remote_styles - local_styles
+            self.assertEqual(missing, set([]),
+                            'Font is missing instances [%s]' % ', '.join(missing))
+
+    def test_version_number_has_advanced(self):
+        if self.remote_font:
+            local_version = max([f['head'].fontRevision for f in self.ttfs])
+            remote_version = max([f['head'].fontRevision for f in self.remote_font])
+            self.assertGreater(
+                local_version,
+                remote_version,
+                "Font Version, %s is not greater than previous release, %s" % (
+                        local_version, remote_version
+                    )
+                )
+
+    def test_vert_metrics_visually_match(self):
+        if self.remote_font:
+            local_fonts = self._hash_fonts(self.ttfs)
+            remote_fonts = self._hash_fonts(self.remote_font)
+            shared_styles = set(local_fonts.keys()) & set(remote_fonts.keys())
+
+            for style in shared_styles:
+                l_font = local_fonts[style]
+                r_font = remote_fonts[style]
+
+                # Check if Use Typo metrics bit 7 is enabled
+                # https://www.microsoft.com/typography/OTSpec/os2.htm#fss
+                l_use_typo_metrics = l_font['OS/2'].fsSelection & 0b10000000
+                r_use_typo_metrics = r_font['OS/2'].fsSelection & 0b10000000
+
+                l_upm = l_font['head'].unitsPerEm
+                r_upm = r_font['head'].unitsPerEm
+
+                if r_use_typo_metrics and l_use_typo_metrics:
+                    self.assertEqual(
+                        l_font['OS/2'].sTypoAscender, 
+                        int(r_font['OS/2'].sTypoAscender / float(r_upm) * l_upm)
+                    )
+                    self.assertEqual(
+                        l_font['OS/2'].sTypoDescender, 
+                        int(r_font['OS/2'].sTypoDescender / float(r_upm) * l_upm)
+                    )
+                    self.assertEqual(
+                        l_font['OS/2'].sTypoLineGap, 
+                        int(r_font['OS/2'].sTypoLineGap / float(r_upm) * l_upm)
+                    )
+                elif l_use_typo_metrics and not r_use_typo_metrics:
+                    self.assertEqual(
+                        l_font['OS/2'].sTypoAscender,
+                        int(r_font['OS/2'].usWinAscent / float(r_upm) * l_upm)
+                    )
+                    self.assertEqual(
+                        l_font['OS/2'].sTypoDescender,
+                        - int(r_font['OS/2'].usWinDescent / float(r_upm) * l_upm)
+                    )
+                    self.assertEqual(
+                        l_font['OS/2'].sTypoLineGap,
+                        0
+                    )
+
+                self.assertEqual(
+                    l_font['hhea'].ascent, 
+                    int(r_font['hhea'].ascent / float(r_upm) * l_upm)
+                )
+                self.assertEqual(
+                    l_font['hhea'].descent, 
+                    int(r_font['hhea'].descent / float(r_upm) * l_upm)
+                )
+                self.assertEqual(
+                    l_font['hhea'].lineGap,
+                    int(r_font['hhea'].lineGap / float(r_upm) * l_upm)
+                    )
+
+
+class TestVerticalMetrics(TestGlyphsFiles):
+    
+    def test_family_has_use_typo_metrics_enabled(self):
+        for font in self.fonts:
+            self.assertEqual(
+                font.customParameters['Use Typo Metrics'],
+                True,
+                "Use Typo Metrics must be enabled"
+            )
+
+    def test_family_share_same_metric_values(self):
+        if not self.remote_font:
+            font_master1_params = self.fonts[0].masters[0].customParameters
+
+            for font in self.fonts:
+                for master in font.masters:
+                    for param in master.customParameters:
+                        if param.name in VERT_KEYS:
+                            self.assertEqual(
+                                font_master1_params[param.name],
+                                master.customParameters[param.name],
+                                '%s is not consistent, %s --> %s' % (
+                                    param.name,
+                                    font_master1_params[param.name],
+                                    master.customParameters[param.name],
+                                )
+                            )
         else:
-            self.customParameters['Use Typo Metrics'] = False
+            pass
 
-        for ttf in self.ttfs:
-            for glyph in ttf['glyf'].keys():
-                nice_glyph_name = Glyphs.niceGlyphName(glyph)
-                # no point attempting to convert TT to PS
-                self.glyphs[nice_glyph_name] = None
+    def test_win_ascent_and_win_descent_equal_bbox(self):
+        family_ymax_ymin = []
+        for font in self.fonts:
+            ymin, ymax = shortest_tallest_glyphs(font)
+            family_ymax_ymin.append(ymin)
+            family_ymax_ymin.append(ymax)
 
-            instance = GSInstance()
-            instance.name = str(ttf['name'].getName(2, 1, 0, 0))
-            self.instances.append(instance)
+        ymax = max(family_ymax_ymin)
+        ymin = min(family_ymax_ymin)
 
-            # Create Masters
-            try:
-                if WEIGHT_MAP[instance.name] in self.weights:
-                    master = GSFontMaster()
-                    master.weightValue = ttf['OS/2'].usWeightClass
-                    master.customParameters['winAscent'] = ttf['OS/2'].usWinAscent
-                    master.customParameters['winDescent'] = ttf['OS/2'].usWinDescent
-                    master.customParameters['typoAscender'] = ttf['OS/2'].sTypoAscender
-                    master.customParameters['typoDescender'] = ttf['OS/2'].sTypoDescender
-                    master.customParameters['typoLineGap'] = ttf['OS/2'].sTypoLineGap
-                    # hhea table
-                    master.customParameters['hheaAscender'] = ttf['hhea'].ascent
-                    master.customParameters['hheaDescender'] = ttf['hhea'].descent
-                    master.customParameters['hheaLineGap'] = ttf['hhea'].lineGap
-                    self.masters.append(master)
-            except KeyError:
-                all
+        for font in self.fonts:
+            for master in font.masters:
+                win_ascent = master.customParameters['winAscent']
+                win_descent = master.customParameters['winDescent']
+                self.assertEqual(int(win_ascent), ymax)
+                # ymin is abs because win descent is a positive integer
+                self.assertEqual(int(win_descent), abs(ymin))
 
 
-def merge_glyph_files(fonts):
-    """Combine multiple .glyphs files into one pseduo glyphs file.
-    Useful for combining Roman and Italic weights into one family"""
-    new_font = GSFont()
-    new_font.versionMajor = max([f.versionMajor for f in fonts])
-    new_font.versionMinor = max([f.versionMinor for f in fonts])
-    if fonts[0].customParameters['Use Typo Metrics']:
-        new_font.customParameters['Use Typo Metrics'] = True
+class TestRepositoryStructure(TestGlyphsFiles):
 
-    for font in fonts:
-        for master in font.masters:
-            new_font.masters.append(master)
-        for instance in font.instances:
-            new_font.instances.append(instance)
-        for glyph in font.glyphs:
-            if glyph.name not in new_font.glyphs.keys():
-                glyph_copy = GSGlyph(glyph.name)
-                glyph_copy.unicode = glyph.unicode
-                new_font.glyphs.append(glyph_copy)
-    return new_font
+    def test_repo_in_gf_upstream_repos_doc(self):
+        """Check the repository has been recorded in the GF doc"""
+        found = False
+        for font in self.fonts:
+            for row in self.repos_doc:
+                if row['family'] == font.familyName:
+                    found = True
+            self.assertEqual(
+                True,
+                found, 
+                'Family is not listed in GF Master repo doc, %s' % UPSTREAM_REPO_URLS
+            )
 
+    def test_fonts_dir_exists(self):
+        abs_fonts_folder = os.path.join(project_dir, FONTS_FOLDER)
+        self.assertEquals(True, os.path.isdir(abs_fonts_folder))
 
-def is_same(a):
-    if len(set(a)) == 1:
-        return True
-    return False
+    def test_sources_dir_exists(self):
+        abs_fonts_folder = os.path.join(project_dir, SOURCES_FOLDER)
+        self.assertEquals(True, os.path.isdir(abs_fonts_folder))
 
+    def test_contributors_file_exists(self):
+        self.assertIn(
+            'CONTRIBUTORS.txt',
+            os.listdir(project_dir),
+            'CONTRIBUTORS.txt is missing in parent directory')
 
-def main(fonts):
-    # Check font already exists
-    logger.header1("Checking availability on fonts.google.com")
-    remote_fonts = url_200_response(fonts[0].familyName)
-    if remote_fonts:
-        logger.info('%s is on fonts.google.com' % fonts[0].familyName)
-    else:
-        logger.info('%s is not on fonts.google.com.' % fonts[0].familyName)
-
-    logger.header1("Checking glyphs files consistency")
-    if len(fonts) >= 2:
-
-        logger.test("Attributes are consistent across glyphs files")
-        for attrib in FONT_ATTRIBS:
-            fonts_attrib_values = fonts_attrib(fonts, attrib)
-            consistent(attrib, fonts_attrib_values)
-
-        logger.test('Glyph set consistency')
-        for font1 in fonts:
-            for font2 in fonts:
-                if font1 != font2:
-                    font1_glyphset = set(font1.glyphs.keys())
-                    font2_glyphset = set(font2.glyphs.keys())
-                    leftover(basename(font1.filepath), font1_glyphset,
-                             basename(font2.filepath), font2_glyphset)
-
-        if not remote_fonts:
-            logger.test("Vertical metrics are consistent")
-            for key in VERT_KEYS:
-                fonts_masters_vert_values = font_masters_attrib(fonts, key)
-                consistent(key, fonts_masters_vert_values)
-    else:
-        logger.info("1 glyphs file only, skipping consistency")
-
-    # consolidate seperate glyph files into one file
-    local_font = merge_glyph_files(fonts)
-
-    if remote_fonts:
-        logger.header1("Performing regression tests")
-        family_zip = ZipFile(StringIO(remote_fonts.read()))
-        ttfs = fonts_from_zip(family_zip)
-
-        remote_glyphs = TTF2Glyph(ttfs, [400, 600, 700]) # fix
-
-        logger.test('Version number has increased since previous release')
-        remote_v_number = float('%s.%s' % (
-            remote_glyphs.versionMajor,
-            str(remote_glyphs.versionMinor).zfill(3)
-        ))
-        local_v_number = float('%s.%s' % (
-            local_font.versionMajor,
-            str(local_font.versionMinor).zfill(3)
-        ))
-        compare('Local Version', local_v_number, '>=',
-                'Remote Version', remote_v_number)
-
-        logger.test('Family contains same styles as hosted version')
-        remote_styles = set([i.name for i in remote_glyphs.instances])
-        local_styles = set([i.name for i in local_font.instances])
-        leftover('Remote version styles', remote_styles,
-                 'Local version styles', local_styles)
-
-        logger.test('Vertical metrics visually match hosted version')
-
-        local_vmetrics = [m.customParameters for m in local_font.masters]
-        remote_vmetrics = [m.customParameters for m in remote_glyphs.masters]
-
-        local_vmetrics_same = is_same([i.values() for i in local_vmetrics])
-        remote_vmetrics_same = is_same([i.values() for i in remote_vmetrics])
-        if remote_vmetrics_same:
-            logger.info('Remote metrics are family consistent')
-            remote_vmetrics = [remote_vmetrics[0] for i in
-                               range(len(local_vmetrics))]
-        if local_vmetrics_same:
-            logger.info('Local metrics are family consistent')
-            local_vmetrics = [local_vmetrics[0] for i in
-                              range(len(local_vmetrics))]
-
-        if remote_vmetrics_same and local_vmetrics_same:
-            remote_vmetrics = [remote_vmetrics[0]]
-            local_vmetrics = [local_vmetrics[0]]
-
-        # local has typo enabled but not remote
-        if local_font.customParameters['Use Typo Metrics'] and not \
-                remote_glyphs.customParameters['Use Typo Metrics']:
-            logger.info('Use Typo Metrics enabled locally')
-            logger.info('Comparing local Typo against remote Win')
-            for r, l in zip(remote_vmetrics, local_vmetrics):
-                for l_key, r_key in VERT_TYPO_KEYS:
-                    if l_key == 'typoDescender':
-                        compare('Local %s' % l_key, abs(l[l_key]), '==',
-                                'Remote %s' % r_key, abs(r[r_key]))
-                    else:
-                        compare('Local %s' % l_key, l[l_key], '==',
-                                'Remote %s' % r_key, r[r_key])
-                compare('Local typoLineGap', l['typoLineGap'], '==',
-                        'Zero', 0)
-
-        # local and remote both have use typo metrics enabled
-        elif local_font.customParameters['Use Typo Metrics'] and \
-            remote_glyphs.customParameters['Use Typo Metrics']:
-                logger.info('Use Typo Metrics enabled locally')
-                logger.info('Use Typo Metrics enabled remotely')
-                # We don't need to check win values, typo metrics is enabled
-                ignore_fields = ['winAscent', 'winDescent']
-                for l, r in zip(remote_vmetrics, local_vmetrics):
-                    for key in VERT_KEYS:
-                        if key not in ignore_fields:
-                            compare('Local %s' % key, l[key], '==',
-                                    'Remote %s' % key, r[key])
-
-
-        else:
-            for l, r in zip(remote_vmetrics, local_vmetrics):
-                for key in VERT_KEYS:
-                    compare('Local %s' % key, l[key], '==',
-                            'Remote %s' % key, r[key])
-
-    #     logger.test('Missing glyphs')
-    #     remote_glyphset = set(remote_glyphs.glyphs.keys())
-    #     local_glyphset = set(fonts[0].glyphs.keys())
-    #     logger.info('Old version has %s glyphs' % len(remote_glyphset))
-    #     logger.info('New version has %s glyphs' % len(local_glyphset))
-    #     leftover('Old version', remote_glyphset,
-    #              'New version', local_glyphset)
-
-    # logger.header1('Checking vertical metrics')
-
-    # vmetrics = [m.customParameters for m in fonts[0].masters]
-
-    # logger.test('Use Typo Metrics is enabled')
-    # typo_metrics = fonts[0].customParameters['Use Typo Metrics']
-    # enabled('Use Typo Metrics', typo_metrics)
-
-    # logger.test('Win Ascent and Win Descent are bbox')
-    # if is_same([i.values() for i in vmetrics]):
-    #     ymin, ymax = shortest_tallest_glyphs(fonts[0])
-    #     logger.info('Vert metrics are family consistent')
-    #     win_ascent = vmetrics[0]['winAscent']
-    #     win_descent = vmetrics[0]['winDescent']
-    #     compare('winDescent', win_descent, '==', 'yMin', abs(ymin))
-    #     compare('winAscent', win_ascent, '==', 'yMax', ymax)
-
-    # if not remote_fonts:
-    #     logger.test('Vert metrics are 120-125% of upm')
-    #     # add test
-
-    # logger.header1("Copyright string")
-
-    # copyright = fonts[0].copyright
-    # logger.test("Copyright attribute matches pattern")
-    # logger.info("String must match following format:\n%s%s" % (
-    #     "Copyright <yyyy> The <font-name> Project Authors ",
-    #     "(https://github.com/author/font-project-name)"
-    #     )
-    # )
-    # copyright_pattern = r'%s%s' % (
-    #     r"Copyright [0-9]{4} The .* Project Authors",
-    #     r" \(https\:\/\/github.com\/.*\/.*\)"
-    # )
-    # regex_contains('Copyright', copyright_pattern, copyright)
-
-    # logger.test("Copyright attribute contains github link")
-    # contains("https://github.com/", copyright)
-
-    # logger.test('Copyright attribute contains "Project Authors"')
-    # contains("Project Authors", copyright)
-
-    # logger.header1('Family metadata constants')
-
-    # font_params = fonts[0].customParameters
-    # logger.test('license matches constant')
-    # compare('Font license', font_params['license'], '==',
-    #         'Constant license', LICENSE)
-
-    # logger.test('licenseURL matches constant')
-    # compare('Font licenseURL', font_params['licenseURL'], '==',
-    #         'Constant licenseURL', LICENSE_URL)
-
-    # logger.test('Family has correct font names')
-    # instances = fonts[0].instances
-    # family_styles = set([i.name for i in instances])
-    # bad_styles = [n for n in family_styles if n not in STYLE_NAMES]
-    # if bad_styles:
-    #     for name in bad_styles:
-    #         logger.failed('%s is an illegal style name' % name)
-    # else:
-    #     logger.passed('Font style names are good')
-
-    # logger.header1('Repository Structure')
-
-    # logger.test('Compulsory folders exist')
-    # abs_sources_folder = os.path.join(project_dir, SOURCES_FOLDER)
-    # exists('sources folder', os.path.isdir(abs_sources_folder))
-
-    # abs_fonts_folder = os.path.join(project_dir, FONTS_FOLDER)
-    # exists('fonts folder', os.path.isdir(abs_fonts_folder))
-
-    # logger.test('Compulsory files exist')
-    # ofl_exists = exists('OFL.txt', os.listdir(project_dir))
-    # exists('CONTRIBUTORS.txt', os.listdir(project_dir))
-    # exists('AUTHORS.txt', os.listdir(project_dir))
-
-    # logger.test('First line of OFL matches copyright')
-    # if ofl_exists:
-    #     with open(os.path.join(project_dir, 'OFL.txt')) as ofl:
-    #         ofl_copyright = ofl.readlines()[0]
-    #         font_copyright = fonts[0].copyright
-    #         compare('OFL Copyright', ofl_copyright, '==',
-    #                 'Font Copyright', font_copyright
-    #                 )
-    # else:
-    #     print 'OFL does not exist'
-
-    print logger
-    logger.clear()
+    def test_authors_file_exists(self):
+        self.assertIn(
+            'AUTHORS.txt', 
+            os.listdir(project_dir),
+            'AUTHORS.txt is missing in parent directory')
 
 
 if __name__ == '__main__':
     Glyphs.showMacroWindow()
-    local_fonts = Glyphs.fonts
-    family_names = [f.familyName for f in local_fonts]
-
-    if len(set(family_names)) != 1:
-        print 'Multiple families open!'
-        print 'Test 1 family at a time'
+    __glyphsfile = Glyphs.font.filepath
+    project_dir = os.path.abspath(
+        os.path.join(os.path.dirname(__glyphsfile), '..')
+    )
+    if len(set([f.familyName for f in Glyphs.fonts])) == 1:
+        TestProgram(argv=['--verbose'], exit=False)
     else:
-        try:
-            __glyphsfile__ = Glyphs.font.filepath
-            project_dir = os.path.abspath(
-                os.path.join(os.path.dirname(__glyphsfile__), '..')
-            )
-        except NameError:
-            project_dir = os.getcwd()
-        main(local_fonts)
+        print 'Test one family at a time'
+
