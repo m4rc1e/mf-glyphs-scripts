@@ -11,20 +11,6 @@ VERT_KEYS = [
     'hheaLineGap',
 ]
 
-VERT_TYPO_KEYS = [
-    ('typoAscender', 'winAscent'),
-    ('typoDescender', 'winDescent'),
-    ('hheaAscender', 'hheaAscender'),
-    ('hheaDescender', 'hheaDescender'),
-    ('hheaLineGap', 'hheaLineGap'),
-]
-
-VERT_SETS = {
-    'typo': ['typoAscender', 'typoDescender', 'typoLineGap'],
-    'win': ['winAscent', 'winDescent'],
-    'hhea': ['hheaAscender', 'hheaDescender', 'hheaLineGap'],
-}
-
 
 def shortest_tallest_glyphs(font, *args):
     '''find the tallest and shortest glyphs in all masters from a list.
