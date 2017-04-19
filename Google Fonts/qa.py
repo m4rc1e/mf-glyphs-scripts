@@ -1,4 +1,9 @@
 #MenuTitle: QA
+# -*- coding: utf-8 -*-
+"""
+Check GF upstream repositories pass GF checklist,
+https://github.com/googlefonts/gf-docs/blob/master/ProjectChecklist.md
+"""
 import unittest
 from unittest import TestProgram
 import os
@@ -100,7 +105,7 @@ def url_200_response(family_name):
 
 
 def fonts_from_zip(zipfile):
-    '''return a dict of fontTools TTFonts'''
+    '''return a list of fontTools.ttLib TTFont objects'''
     ttfs = []
     for file_name in zipfile.namelist():
         if 'ttf' in file_name:
@@ -117,7 +122,7 @@ def get_repos_doc():
 
 
 class TestGlyphsFiles(unittest.TestCase):
-    """Test for single .glyphs file families"""
+    """Class loads/generates necessary files for unit tests."""
     @classmethod
     def setUpClass(cls):
         cls.fonts = Glyphs.fonts
@@ -129,6 +134,7 @@ class TestGlyphsFiles(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        """Remove the temporarily generated folder and its files"""
         shutil.rmtree(cls._temp_dir)
 
     @property
@@ -144,12 +150,14 @@ class TestGlyphsFiles(unittest.TestCase):
 
     @property
     def repos_doc(self):
+        """Return a csv DictReader object of the GF_Repo doc"""
         if not self._repos_doc:
             self._repos_doc = get_repos_doc()
         return self._repos_doc
 
     @property
     def ttfs(self):
+        """Return the generated .ttfs from the open .glyphs files"""
         if not self._ttfs:
             for font in self.fonts:
                 for instance in font.instances:
@@ -164,7 +172,10 @@ class TestFontInfo(TestGlyphsFiles):
     def test_copyright(self):
         """Copyright string matches specification:
 
-        https://github.com/googlefonts/gf-docs/blob/master/ProjectChecklist.md#ofltxt"""
+        https://github.com/googlefonts/gf-docs/blob/master/ProjectChecklist.md#ofltxt
+
+        The string must include the git repo url.
+        """
         
         repo_git_url = None
         for font in self.fonts:
@@ -190,6 +201,7 @@ class TestFontInfo(TestGlyphsFiles):
             )
 
     def test_style_names(self):
+        """Instance names must be in STYLE_NAMES"""
         for font in self.fonts:
             instances = font.instances
             family_styles = set([i.name for i in instances])
@@ -200,21 +212,23 @@ class TestFontInfo(TestGlyphsFiles):
         for font in self.fonts:
             self.assertEqual(
                 font.customParameters['licenseURL'],
-                LICENSE_URL
+                LICENSE_URL,
+                "font.customParameters['licenseURL'] must be '%s'" % LICENSE_URL
             )
 
     def test_license(self):
         for font in self.fonts:
             self.assertEqual(
                 font.customParameters['license'],
-                LICENSE
+                LICENSE,
+                "font.customParameters['license'] must be '%s'" % LICENSE
             )
 
 
 class TestMultipleGlyphsFileConsistency(unittest.TestCase):
     """Families are often split into multiple .glyphs files.
 
-    Make sure the attributes share the same values"""
+    Make sure certain attributes share the same values"""
     def setUp(self):
         self.fonts = Glyphs.fonts
 
@@ -242,8 +256,7 @@ class TestMultipleGlyphsFileConsistency(unittest.TestCase):
 
 class TestRegressions(TestGlyphsFiles):
     """If the family already exists on fonts.google.com, download and compare
-    the data against the generated instances from the .glyphs file."""
-
+    the data against the generated .ttf instances from the .glyphs file."""
     def _get_font_styles(self, fonts):
         """Get the Win style name for each font"""
         styles = []
@@ -259,6 +272,8 @@ class TestRegressions(TestGlyphsFiles):
 
 
     def test_missing_glyphs(self):
+        """Family updates should include the same glyphs as the
+        previous release."""
         if self.remote_font:
             local_fonts = self._hash_fonts(self.ttfs)
             remote_fonts = self._hash_fonts(self.remote_font)
@@ -273,16 +288,23 @@ class TestRegressions(TestGlyphsFiles):
                                 'Font is missing [%s]' % ', '.join(missing))
 
     def test_missing_instances(self):
-        """Check if the family is missing any instances.
-        We must ensure we have the same styles from the previous release."""
+        """Family updates must include the same instances as the previous
+        release."""
         if self.remote_font:
             local_styles = self._get_font_styles(self.ttfs)
             remote_styles = self._get_font_styles(self.remote_font)
             missing = remote_styles - local_styles
             self.assertEqual(missing, set([]),
-                            'Font is missing instances [%s]' % ', '.join(missing))
+                            'Font is missing instances [%s] are all .glyphs file open?' % ', '.join(missing))
 
     def test_version_number_has_advanced(self):
+        """If the family has a version number lower than the family being
+        served on fonts.google.com, it may mean the repository is based on
+        older sources. Authors need to investigate if they are working from
+        the correct source.
+
+        If the version number is the same and changes have occured, the
+        version number needs bumping"""
         if self.remote_font:
             local_version = max([f['head'].fontRevision for f in self.ttfs])
             remote_version = max([f['head'].fontRevision for f in self.remote_font])
@@ -295,6 +317,20 @@ class TestRegressions(TestGlyphsFiles):
                 )
 
     def test_vert_metrics_visually_match(self):
+        """Vertical metrics must visually match the version hosted
+        on fonts.google.com.
+
+        If the hosted family doesn't have the fsSelection bit 7 enabled,
+        we can use this to our advantage. By setting this bit, the typo
+        metrics are used instead of the win metrics. This allows us to
+        add taller scripts, without affecting the line leading. The win
+        metrics can then be set freely. This scenario is common when 
+        upgrading legacy families.
+
+        If both the hosted family and the local family have fsSelection
+        bit 7 enabled, the typo and hhea values must be the same. The win
+        values can be changed freely to accomodate the families bbox ymin
+        and ymax values to avoid clipping."""
         if self.remote_font:
             local_fonts = self._hash_fonts(self.ttfs)
             remote_fonts = self._hash_fonts(self.remote_font)
@@ -384,6 +420,8 @@ class TestVerticalMetrics(TestGlyphsFiles):
             pass
 
     def test_win_ascent_and_win_descent_equal_bbox(self):
+        """MS recommends OS/2's win Ascent and win Descent must be the ymax
+        and ymin of the bbox"""
         family_ymax_ymin = []
         for font in self.fonts:
             ymin, ymax = shortest_tallest_glyphs(font)
@@ -403,9 +441,27 @@ class TestVerticalMetrics(TestGlyphsFiles):
 
 
 class TestRepositoryStructure(TestGlyphsFiles):
+    """Repositories must conform to the following tree:
 
+        .
+    ├── AUTHORS.txt
+    ├── CONTRIBUTORS.txt
+    ├── DESCRIPTION.en_us.html
+    ├── FONTLOG.txt
+    ├── METADATA.pb
+    ├── OFL.txt
+    ├── README.md
+    ├── fonts
+    │   └── ttf
+    │       ├── Inconsolata-Bold.ttf
+    │       └── Inconsolata-Regular.ttf
+    └── sources
+        └──  Inconsolata.glyphs
+
+    """
     def test_repo_in_gf_upstream_repos_doc(self):
-        """Check the repository has been recorded in the GF doc"""
+        """Check the repository has been recorded in the GF Upstream doc,
+        http://tinyurl.com/kd9lort"""
         found = False
         for font in self.fonts:
             for row in self.repos_doc:
@@ -419,23 +475,31 @@ class TestRepositoryStructure(TestGlyphsFiles):
 
     def test_fonts_dir_exists(self):
         abs_fonts_folder = os.path.join(project_dir, FONTS_FOLDER)
-        self.assertEquals(True, os.path.isdir(abs_fonts_folder))
+        self.assertEquals(
+            True,
+            os.path.isdir(abs_fonts_folder),
+            "'%s' folder is missing or named incorrectly" % abs_fonts_folder
+        )
 
     def test_sources_dir_exists(self):
-        abs_fonts_folder = os.path.join(project_dir, SOURCES_FOLDER)
-        self.assertEquals(True, os.path.isdir(abs_fonts_folder))
+        abs_sources_folder = os.path.join(project_dir, SOURCES_FOLDER)
+        self.assertEquals(
+            True,
+            os.path.isdir(abs_sources_folder),
+            "'%s' folder is missing or named incorrectly" % abs_sources_folder
+        )
 
     def test_contributors_file_exists(self):
         self.assertIn(
             'CONTRIBUTORS.txt',
             os.listdir(project_dir),
-            'CONTRIBUTORS.txt is missing in parent directory')
+            "'CONTRIBUTORS.txt' is missing in parent directory")
 
     def test_authors_file_exists(self):
         self.assertIn(
             'AUTHORS.txt', 
             os.listdir(project_dir),
-            'AUTHORS.txt is missing in parent directory')
+            "'AUTHORS.txt' is missing in parent directory")
 
 
 if __name__ == '__main__':
@@ -448,4 +512,3 @@ if __name__ == '__main__':
         TestProgram(argv=['--verbose'], exit=False)
     else:
         print 'Test one family at a time'
-
