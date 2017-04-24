@@ -192,7 +192,7 @@ class TestFontInfo(TestGlyphsFiles):
             copyright_search = re.search(family_copyright_pattern, font.copyright)
             self.assertIsNotNone(
                 copyright_search,
-                'Copyright string is incorrect. It must contain or be:\n' + \
+                'font.copyright is incorrect. It must contain or be:\n' + \
                 'Copyright %s The %s Project Authors (%s)' %(
                     datetime.now().year,
                     font.familyName,
@@ -236,8 +236,18 @@ class TestMultipleGlyphsFileConsistency(unittest.TestCase):
         for font1 in self.fonts:
             for font2 in self.fonts:
                 for attrib in FONT_ATTRIBS:
-                    self.assertEqual(getattr(font1, attrib),
-                                     getattr(font2, attrib))
+                    self.assertEqual(
+                        getattr(font1, attrib),
+                        getattr(font2, attrib),
+                        "%s %s %s not equal to %s %s %s" % (
+                            font1,
+                            attrib,
+                            getattr(font1, attrib),
+                            font2,
+                            attrib,
+                            getattr(font2, attrib)
+                        )
+                    )
 
     def test_font_customParameters_are_equal(self):
         for font1 in self.fonts:
@@ -246,9 +256,12 @@ class TestMultipleGlyphsFileConsistency(unittest.TestCase):
                     self.assertEqual(
                         font1.customParameters[param.name],
                         font2.customParameters[param.name],
-                        '%s is not consistent, %s --> %s' % (
+                        '%s %s %s is not equal to %s %s %s' % (
+                            font1,
                             param.name,
                             font1.customParameters[param.name],
+                            font2,
+                            param.name,
                             font2.customParameters[param.name],
                         )
                     )
@@ -284,8 +297,14 @@ class TestRegressions(TestGlyphsFiles):
                 remote_glyphs = set(remote_fonts[style].getGlyphSet().keys())
 
                 missing = remote_glyphs - local_glyphs
-                self.assertEqual(missing, set([]),
-                                'Font is missing [%s]' % ', '.join(missing))
+                self.assertEqual(
+                    missing,
+                    set([]),
+                    '%s is missing [%s]' % (
+                        style,
+                        ', '.join(missing)
+                    )
+                )
 
     def test_missing_instances(self):
         """Family updates must include the same instances as the previous
@@ -351,42 +370,85 @@ class TestRegressions(TestGlyphsFiles):
                 if r_use_typo_metrics and l_use_typo_metrics:
                     self.assertEqual(
                         l_font['OS/2'].sTypoAscender, 
-                        int(r_font['OS/2'].sTypoAscender / float(r_upm) * l_upm)
+                        int(r_font['OS/2'].sTypoAscender / float(r_upm) * l_upm),
+                        "Local %s typoAscender %s is not equal to remote %s typoAscender %s" % (
+                            style,
+                            l_font['OS/2'].sTypoAscender,
+                            int(r_font['OS/2'].sTypoAscender / float(r_upm) * l_upm),
+                        )
                     )
                     self.assertEqual(
                         l_font['OS/2'].sTypoDescender, 
-                        int(r_font['OS/2'].sTypoDescender / float(r_upm) * l_upm)
+                        int(r_font['OS/2'].sTypoDescender / float(r_upm) * l_upm),
+                        "Local %s typoDescender %s is not equal to remote %s typoDescender %s" % (
+                            style,
+                            l_font['OS/2'].sTypoDescender,
+                            int(r_font['OS/2'].sTypoDescender / float(r_upm) * l_upm),
+                        )
                     )
                     self.assertEqual(
                         l_font['OS/2'].sTypoLineGap, 
-                        int(r_font['OS/2'].sTypoLineGap / float(r_upm) * l_upm)
+                        int(r_font['OS/2'].sTypoLineGap / float(r_upm) * l_upm),
+                        "Local %s typoLineGap %s is not equal to remote %s typoLineGap %s" % (
+                            style,
+                            l_font['OS/2'].sTypoLineGap,
+                            int(r_font['OS/2'].sTypoLineGap / float(r_upm) * l_upm),
+                        )
                     )
                 elif l_use_typo_metrics and not r_use_typo_metrics:
                     self.assertEqual(
                         l_font['OS/2'].sTypoAscender,
-                        int(r_font['OS/2'].usWinAscent / float(r_upm) * l_upm)
+                        int(r_font['OS/2'].usWinAscent / float(r_upm) * l_upm),
+                        "Local %s typoAscender %s is not equal to remote %s winAscent %s" % (
+                            style,
+                            l_font['OS/2'].sTypoAscender,
+                            int(r_font['OS/2'].usWinAscent / float(r_upm) * l_upm),
+                        )
                     )
                     self.assertEqual(
                         l_font['OS/2'].sTypoDescender,
-                        - int(r_font['OS/2'].usWinDescent / float(r_upm) * l_upm)
+                        - int(r_font['OS/2'].usWinDescent / float(r_upm) * l_upm),
+                        "Local %s typoDescender %s is not equal to remote %s winDescent %s" % (
+                            style,
+                            l_font['OS/2'].sTypoDescender,
+                            - int(r_font['OS/2'].usWinDescent / float(r_upm) * l_upm),
+                        )
                     )
                     self.assertEqual(
                         l_font['OS/2'].sTypoLineGap,
-                        0
+                        0,
+                        "Local %s typoLineGap %s is not equal to 0" % (
+                            style,
+                        )
                     )
 
                 self.assertEqual(
                     l_font['hhea'].ascent, 
-                    int(r_font['hhea'].ascent / float(r_upm) * l_upm)
+                    int(r_font['hhea'].ascent / float(r_upm) * l_upm),
+                    "Local %s hheaAscender %s is not equal to remote %s hheaAscender %s" % (
+                        style,
+                        l_font['hhea'].ascent, 
+                        int(r_font['hhea'].ascent / float(r_upm) * l_upm),
+                    )
                 )
                 self.assertEqual(
                     l_font['hhea'].descent, 
-                    int(r_font['hhea'].descent / float(r_upm) * l_upm)
+                    int(r_font['hhea'].descent / float(r_upm) * l_upm),
+                    "Local %s hheaDescender %s is not equal to remote %s hheaDescender %s" % (
+                        style,
+                        l_font['hhea'].descent,
+                        int(r_font['hhea'].descent / float(r_upm) * l_upm),
+                    )
                 )
                 self.assertEqual(
                     l_font['hhea'].lineGap,
-                    int(r_font['hhea'].lineGap / float(r_upm) * l_upm)
+                    int(r_font['hhea'].lineGap / float(r_upm) * l_upm),
+                    "Local %s hheaLineGap %s is not equal to remote %s hheaLineGap %s" % (
+                        style,
+                        l_font['hhea'].lineGap,
+                        int(r_font['hhea'].lineGap / float(r_upm) * l_upm),
                     )
+                )
 
 
 class TestVerticalMetrics(TestGlyphsFiles):
@@ -396,7 +458,7 @@ class TestVerticalMetrics(TestGlyphsFiles):
             self.assertEqual(
                 font.customParameters['Use Typo Metrics'],
                 True,
-                "Use Typo Metrics must be enabled"
+                "Use font.customParameters['Typo Metrics'] must be enabled"
             )
 
     def test_family_share_same_metric_values(self):
@@ -410,10 +472,11 @@ class TestVerticalMetrics(TestGlyphsFiles):
                             self.assertEqual(
                                 font_master1_params[param.name],
                                 master.customParameters[param.name],
-                                '%s is not consistent, %s --> %s' % (
+                                '%s %s %s is not equal to %s' % (
+                                    master.name,
                                     param.name,
-                                    font_master1_params[param.name],
                                     master.customParameters[param.name],
+                                    font_master1_params[param.name],
                                 )
                             )
         else:
@@ -435,9 +498,23 @@ class TestVerticalMetrics(TestGlyphsFiles):
             for master in font.masters:
                 win_ascent = master.customParameters['winAscent']
                 win_descent = master.customParameters['winDescent']
-                self.assertEqual(int(win_ascent), ymax)
+                self.assertEqual(
+                    int(win_ascent),
+                    ymax,
+                    "%s winAscent %s is not equal to %s" % (
+                        master.name,
+                        win_ascent,
+                        ymax)
+                )
                 # ymin is abs because win descent is a positive integer
-                self.assertEqual(int(win_descent), abs(ymin))
+                self.assertEqual(
+                    int(win_descent),
+                    abs(ymin),
+                    "%s winDescent %s is not equal to %s" % (
+                        master.name,
+                        win_descent,
+                        ymin)
+                )
 
 
 class TestRepositoryStructure(TestGlyphsFiles):
