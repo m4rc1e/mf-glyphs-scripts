@@ -37,11 +37,13 @@ def uni00a0_width(font, masters, fix=False):
     '''Set nbspace to same width as space'''
     print '**Checking space and nbspace have same width**'
     for id, master in enumerate(masters):
-        if font.glyphs['nbspace'].layers[id].width != font.glyphs['space'].layers[id].width:
-            print "ERROR: %s master's nbspace and space are not same width\n" % (master.name)
+        if font.glyphs['nbspace']:
+            if font.glyphs['nbspace'].layers[id].width != font.glyphs['space'].layers[id].width:
+                print "ERROR: %s master's nbspace and space are not same width\n" % (master.name)
+            else:
+                print "PASS: %s master's nbspace and space are same width\n" % (master.name)
         else:
-            print "PASS: %s master's nbspace and space are same width\n" % (master.name)
-
+            print "ERROR: nbspace does not exist. It may be named uni00A0"
         if fix:
             font.glyphs['nbspace'].layers[id].width = font.glyphs['space'].layers[id].width
             print 'Now equal widths! space=%s, 00A0=%s' % (
